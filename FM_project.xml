@@ -1,18 +1,103 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
 <nta>
-	<declaration>// Place global declarations here.</declaration>
+	<declaration>chan enter_station;</declaration>
 	<template>
-		<name x="5" y="5">Template</name>
-		<declaration>// Place local declarations here.</declaration>
-		<location id="id0" x="0" y="0">
+		<name x="5" y="5">Train</name>
+		<parameter>int q</parameter>
+		<declaration>
+clock mov_time;
+clock waiting_time;
+
+int charge = 150, charge_max = 150, speed = 100, request_threshold = 2, passengers_threshold = 5;
+
+void increase_charge(){
+    charge += 1;
+}
+
+void decrease_charge(){
+    charge -= 1;
+}
+</declaration>
+		<location id="id0" x="-882" y="-697">
+			<name x="-908" y="-731">charging</name>
+		</location>
+		<location id="id1" x="-544" y="-697">
+			<name x="-570" y="-731">moving</name>
+		</location>
+		<location id="id2" x="-544" y="-476">
+			<name x="-604" y="-459">waiting_free_station</name>
+		</location>
+		<location id="id3" x="-875" y="-476">
 		</location>
 		<init ref="id0"/>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="-773" y="-612">enter_station?</label>
+			<label kind="assignment" x="-765" y="-595">waiting_time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id3"/>
+			<label kind="guard" x="-1300" y="-501">waiting_time &lt; request_threshold - 1</label>
+			<label kind="assignment" x="-1181" y="-518">decrease_charge()</label>
+			<nail x="-1062" y="-476"/>
+			<nail x="-986" y="-536"/>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="guard" x="-833" y="-518">waiting_time &gt;= request_threshold-1</label>
+			<label kind="assignment" x="-782" y="-535">decrease_charge()</label>
+			<nail x="-714" y="-501"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id3"/>
+			<label kind="assignment" x="-833" y="-433">waiting_time = 0, decrease_charge()</label>
+			<nail x="-713" y="-451"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id1"/>
+			<label kind="assignment" x="-434" y="-731">decrease_charge()</label>
+			<nail x="-451" y="-765"/>
+			<nail x="-434" y="-697"/>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id0"/>
+			<label kind="guard" x="-1129" y="-748">charge &lt; charge_max</label>
+			<label kind="assignment" x="-1112" y="-731">increase_charge()</label>
+			<nail x="-993" y="-697"/>
+			<nail x="-959" y="-756"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id2"/>
+			<label kind="assignment" x="-535" y="-586">waiting_time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-850" y="-739">waiting_time &gt;= passengers_threshold</label>
+			<label kind="assignment" x="-765" y="-722">mov_time = 0</label>
+		</transition>
+	</template>
+	<template>
+		<name>Station</name>
+		<location id="id4" x="-629" y="-357">
+		</location>
+		<location id="id5" x="-408" y="-357">
+		</location>
+		<init ref="id4"/>
 	</template>
 	<system>// Place template instantiations here.
-Process = Template();
+train_1 = Train();
+
 // List one or more processes to be composed into a system.
-system Process;
+system train_1;
     </system>
 	<queries>
 		<query>
