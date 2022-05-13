@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
 <nta>
-	<declaration>chan enter_station;</declaration>
+	<declaration>chan enter_station;
+
+int b[4][6] := { {1,2,3,4}, {4,5,6,7}, {1,2,3,4}, {4,5,6,7}, {1,2,3,4}, {4,5,6,7} }; //{statione_in, stazione_f, distanza, delay}</declaration>
 	<template>
 		<name x="5" y="5">Train</name>
-		<parameter>int q</parameter>
-		<declaration>
-clock mov_time;
+		<parameter>int charge, int charge_max, int speed</parameter>
+		<declaration>clock mov_time;
 clock waiting_time;
 
-int charge = 150, charge_max = 150, speed = 100, request_threshold = 2, passengers_threshold = 5;
+int request_threshold = 2, passengers_threshold = 5;
 
 void increase_charge(){
     charge += 1;
@@ -76,7 +77,7 @@ void decrease_charge(){
 		<transition>
 			<source ref="id1"/>
 			<target ref="id2"/>
-			<label kind="assignment" x="-535" y="-586">waiting_time = 0</label>
+			<label kind="assignment" x="-535" y="-586">waiting_time = 0, decrease_charge()</label>
 		</transition>
 		<transition>
 			<source ref="id0"/>
@@ -86,18 +87,50 @@ void decrease_charge(){
 		</transition>
 	</template>
 	<template>
-		<name>Station</name>
-		<location id="id4" x="-629" y="-357">
+		<name>Template0</name>
+		<location id="id4" x="0" y="0">
 		</location>
-		<location id="id5" x="-408" y="-357">
+		<location id="id5" x="119" y="0">
+		</location>
+		<location id="id6" x="-178" y="0">
 		</location>
 		<init ref="id4"/>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id5"/>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id4"/>
+		</transition>
+	</template>
+	<template>
+		<name>Station</name>
+		<parameter>int max_tracks</parameter>
+		<declaration>int count_train = 0;
+
+void increase_count(){
+    count_train += 1;
+}</declaration>
+		<location id="id7" x="-654" y="-459">
+		</location>
+		<init ref="id7"/>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id7"/>
+			<label kind="guard" x="-926" y="-527">count_train &lt; max_tracks</label>
+			<label kind="synchronisation" x="-892" y="-544">enter_station!</label>
+			<label kind="assignment" x="-892" y="-510">increase_count()</label>
+			<nail x="-790" y="-459"/>
+			<nail x="-748" y="-527"/>
+		</transition>
 	</template>
 	<system>// Place template instantiations here.
-train_1 = Train();
+train_1 = Train(150 ,150, 100);
+station_1 = Station(3);
 
 // List one or more processes to be composed into a system.
-system train_1;
+system train_1, station_1;
     </system>
 	<queries>
 		<query>
