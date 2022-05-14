@@ -1,12 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
 <nta>
-	<declaration>chan enter_station;
+	<declaration>chan enter_station_1;
+chan enter_station_2;
+chan enter_station_3;
+chan enter_station_4;
+chan exit_station_1;
+chan exit_station_2;
+chan exit_station_3;
+chan exit_station_4;
 
 int b[4][6] := { {1,2,3,4}, {4,5,6,7}, {1,2,3,4}, {4,5,6,7}, {1,2,3,4}, {4,5,6,7} }; //{statione_in, stazione_f, distanza, delay}</declaration>
 	<template>
 		<name x="5" y="5">Train</name>
-		<parameter>int charge, int charge_max, int speed</parameter>
+		<parameter>int charge, int charge_max, int speed, int station, bool direction</parameter>
 		<declaration>clock mov_time;
 clock waiting_time;
 
@@ -19,118 +26,347 @@ void increase_charge(){
 void decrease_charge(){
     charge -= 1;
 }
-</declaration>
-		<location id="id0" x="-882" y="-697">
-			<name x="-908" y="-731">charging</name>
+
+void increase_station(){
+    station += 1;
+}
+
+void decrease_station(){
+    station -= 1;
+}
+
+void left(){
+    direction = 0;
+}
+
+void right(){
+    direction = 1;
+}</declaration>
+		<location id="id0" x="-1402" y="-2040">
+			<name x="-1428" y="-2074">charging</name>
 		</location>
-		<location id="id1" x="-544" y="-697">
-			<name x="-570" y="-731">moving</name>
+		<location id="id1" x="-654" y="-2040">
+			<name x="-680" y="-2074">moving</name>
 		</location>
-		<location id="id2" x="-544" y="-476">
-			<name x="-604" y="-459">waiting_free_station</name>
+		<location id="id2" x="-654" y="-1589">
+			<name x="-714" y="-1572">waiting_free_station</name>
 		</location>
-		<location id="id3" x="-875" y="-476">
+		<location id="id3" x="-654" y="-1402">
+		</location>
+		<location id="id4" x="-969" y="-1742">
+			<name x="-979" y="-1776">station_1</name>
+		</location>
+		<location id="id5" x="-994" y="-1632">
+			<name x="-1004" y="-1666">station_2</name>
+		</location>
+		<location id="id6" x="-994" y="-1538">
+			<name x="-1004" y="-1572">station_3</name>
+		</location>
+		<location id="id7" x="-1003" y="-1453">
+			<name x="-1013" y="-1487">station_4</name>
+		</location>
+		<location id="id8" x="-1428" y="-1470">
+			<name x="-1438" y="-1504">ovest</name>
+			<label kind="invariant" x="-1438" y="-1453">direction = 0</label>
+		</location>
+		<location id="id9" x="-1190" y="-1700">
+			<name x="-1200" y="-1734">est</name>
+			<label kind="invariant" x="-1200" y="-1683">direction = 1</label>
+		</location>
+		<location id="id10" x="-1011" y="-2108">
+		</location>
+		<location id="id11" x="-1003" y="-2218">
+		</location>
+		<location id="id12" x="-1003" y="-1997">
+		</location>
+		<location id="id13" x="-1011" y="-1904">
 		</location>
 		<init ref="id0"/>
 		<transition>
-			<source ref="id2"/>
-			<target ref="id0"/>
-			<label kind="synchronisation" x="-773" y="-612">enter_station?</label>
-			<label kind="assignment" x="-765" y="-595">waiting_time = 0</label>
-		</transition>
-		<transition>
-			<source ref="id3"/>
-			<target ref="id3"/>
-			<label kind="guard" x="-1300" y="-501">waiting_time &lt; request_threshold - 1</label>
-			<label kind="assignment" x="-1181" y="-518">decrease_charge()</label>
-			<nail x="-1062" y="-476"/>
-			<nail x="-986" y="-536"/>
-		</transition>
-		<transition>
-			<source ref="id3"/>
-			<target ref="id2"/>
-			<label kind="guard" x="-833" y="-518">waiting_time &gt;= request_threshold-1</label>
-			<label kind="assignment" x="-782" y="-535">decrease_charge()</label>
-			<nail x="-714" y="-501"/>
-		</transition>
-		<transition>
-			<source ref="id2"/>
-			<target ref="id3"/>
-			<label kind="assignment" x="-833" y="-433">waiting_time = 0, decrease_charge()</label>
-			<nail x="-713" y="-451"/>
-		</transition>
-		<transition>
-			<source ref="id1"/>
+			<source ref="id13"/>
 			<target ref="id1"/>
-			<label kind="assignment" x="-434" y="-731">decrease_charge()</label>
-			<nail x="-451" y="-765"/>
-			<nail x="-434" y="-697"/>
+			<label kind="assignment" x="-926" y="-1946">decrease_charge()</label>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id1"/>
+			<label kind="assignment" x="-943" y="-2014">decrease_charge()</label>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id1"/>
+			<label kind="assignment" x="-960" y="-2116">decrease_charge()</label>
+		</transition>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id1"/>
+			<label kind="assignment" x="-960" y="-2193">decrease_charge()</label>
 		</transition>
 		<transition>
 			<source ref="id0"/>
-			<target ref="id0"/>
-			<label kind="guard" x="-1129" y="-748">charge &lt; charge_max</label>
-			<label kind="assignment" x="-1112" y="-731">increase_charge()</label>
-			<nail x="-993" y="-697"/>
-			<nail x="-959" y="-756"/>
-		</transition>
-		<transition>
-			<source ref="id1"/>
-			<target ref="id2"/>
-			<label kind="assignment" x="-535" y="-586">waiting_time = 0, decrease_charge()</label>
+			<target ref="id13"/>
+			<label kind="guard" x="-1377" y="-1938">station == 4 &amp;&amp; waiting_time &gt;= passengers_threshold</label>
+			<label kind="synchronisation" x="-1156" y="-1921">exit_station_4!</label>
+			<label kind="assignment" x="-1147" y="-1904">mov_time = 0</label>
 		</transition>
 		<transition>
 			<source ref="id0"/>
-			<target ref="id1"/>
-			<label kind="guard" x="-850" y="-739">waiting_time &gt;= passengers_threshold</label>
-			<label kind="assignment" x="-765" y="-722">mov_time = 0</label>
+			<target ref="id12"/>
+			<label kind="guard" x="-1385" y="-2014">station == 3 &amp;&amp; waiting_time &gt;= passengers_threshold</label>
+			<label kind="synchronisation" x="-1147" y="-1997">exit_station_3!</label>
+			<label kind="assignment" x="-1130" y="-1980">mov_time = 0</label>
 		</transition>
-	</template>
-	<template>
-		<name>Template0</name>
-		<location id="id4" x="0" y="0">
-		</location>
-		<location id="id5" x="119" y="0">
-		</location>
-		<location id="id6" x="-178" y="0">
-		</location>
-		<init ref="id4"/>
 		<transition>
-			<source ref="id4"/>
-			<target ref="id5"/>
+			<source ref="id0"/>
+			<target ref="id11"/>
+			<label kind="guard" x="-1385" y="-2218">station == 1 &amp;&amp; waiting_time &gt;= passengers_threshold</label>
+			<label kind="synchronisation" x="-1190" y="-2201">exit_station_1!</label>
+			<label kind="assignment" x="-1190" y="-2184">mov_time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id10"/>
+			<label kind="guard" x="-1411" y="-2133">station == 2 &amp;&amp; waiting_time &gt;= passengers_threshold</label>
+			<label kind="synchronisation" x="-1156" y="-2116">exit_station_2!</label>
+			<label kind="assignment" x="-1156" y="-2099">mov_time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id0"/>
+			<label kind="assignment" x="-1462" y="-1674">increase_charge()</label>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id0"/>
+			<label kind="assignment" x="-1300" y="-1802">increase_charge()</label>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id8"/>
+			<label kind="assignment" x="-1181" y="-1462">left(), decrease_station()</label>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id9"/>
+			<label kind="assignment" x="-1139" y="-1504">left(), decrease_station()</label>
 		</transition>
 		<transition>
 			<source ref="id6"/>
+			<target ref="id8"/>
+			<label kind="guard" x="-1215" y="-1530">decrease_station()</label>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id9"/>
+			<label kind="assignment" x="-1105" y="-1572">increase_station()</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id8"/>
+			<label kind="guard" x="-1224" y="-1581">decrease_station()</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id9"/>
+			<label kind="assignment" x="-1122" y="-1674">increase_station()</label>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id8"/>
+			<label kind="assignment" x="-1113" y="-1708">right(), increase_station()</label>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id9"/>
+			<label kind="assignment" x="-1147" y="-1759">increase_station()</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id7"/>
+			<label kind="guard" x="-935" y="-1530">station == 3 &amp;&amp; direction == 1</label>
+			<label kind="synchronisation" x="-909" y="-1521">enter_station_4?</label>
+			<label kind="assignment" x="-909" y="-1513">waiting_time=0</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id6"/>
+			<label kind="guard" x="-960" y="-1581">station == 2 &amp;&amp; direction == 1 | station == 4</label>
+			<label kind="synchronisation" x="-943" y="-1564">enter_station_3?</label>
+			<label kind="assignment" x="-952" y="-1555">waiting_time=0</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id5"/>
+			<label kind="guard" x="-977" y="-1632">station == 1 | station==3 &amp;&amp; direction == 0</label>
+			<label kind="synchronisation" x="-909" y="-1615">enter_station_2?</label>
+			<label kind="assignment" x="-901" y="-1606">waiting_time=0</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
 			<target ref="id4"/>
+			<label kind="guard" x="-901" y="-1691">station == 2 &amp;&amp; direction == 0</label>
+			<label kind="synchronisation" x="-867" y="-1674">enter_station_1?</label>
+			<label kind="assignment" x="-850" y="-1666">waiting_time=0</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id3"/>
+			<label kind="guard" x="-552" y="-1411">waiting_time &lt; request_threshold - 1</label>
+			<label kind="assignment" x="-552" y="-1428">decrease_charge()</label>
+			<nail x="-552" y="-1385"/>
+			<nail x="-578" y="-1436"/>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="guard" x="-926" y="-1479">waiting_time &gt;= request_threshold-1</label>
+			<label kind="assignment" x="-790" y="-1496">decrease_charge()</label>
+			<nail x="-696" y="-1495"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id3"/>
+			<label kind="assignment" x="-603" y="-1512">waiting_time = 0, decrease_charge()</label>
+			<nail x="-611" y="-1495"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id1"/>
+			<label kind="assignment" x="-544" y="-2074">decrease_charge()</label>
+			<nail x="-561" y="-2108"/>
+			<nail x="-544" y="-2040"/>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id0"/>
+			<label kind="guard" x="-1649" y="-2091">charge &lt; charge_max</label>
+			<label kind="assignment" x="-1632" y="-2074">increase_charge()</label>
+			<nail x="-1513" y="-2040"/>
+			<nail x="-1479" y="-2099"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id2"/>
+			<label kind="assignment" x="-645" y="-1699">waiting_time = 0, decrease_charge()</label>
 		</transition>
 	</template>
 	<template>
 		<name>Station</name>
-		<parameter>int max_tracks</parameter>
-		<declaration>int count_train = 0;
+		<parameter>int max_tracks_1, int max_tracks_2, int max_tracks_3, int max_tracks_4,int count_stat_1, int count_stat_2, int count_stat_3, int count_stat_4</parameter>
+		<declaration>
+void increase_count_1(){
+    count_stat_1 += 1;
+}
 
-void increase_count(){
-    count_train += 1;
+void increase_count_2(){
+    count_stat_2 += 1;
+}
+
+void increase_count_3(){
+    count_stat_3 += 1;
+}
+
+void increase_count_4(){
+    count_stat_4 += 1;
+}
+
+void decrease_count_1(){
+    count_stat_1 -= 1;
+}
+
+void decrease_count_2(){
+    count_stat_2 -= 1;
+}
+
+void decrease_count_3(){
+    count_stat_3 -= 1;
+}
+
+void decrease_count_4(){
+    count_stat_4 -= 1;
 }</declaration>
-		<location id="id7" x="-654" y="-459">
+		<location id="id14" x="-1054" y="-1190">
+			<name x="-1064" y="-1224">station</name>
 		</location>
-		<init ref="id7"/>
+		<init ref="id14"/>
 		<transition>
-			<source ref="id7"/>
-			<target ref="id7"/>
-			<label kind="guard" x="-926" y="-527">count_train &lt; max_tracks</label>
-			<label kind="synchronisation" x="-892" y="-544">enter_station!</label>
-			<label kind="assignment" x="-892" y="-510">increase_count()</label>
-			<nail x="-790" y="-459"/>
-			<nail x="-748" y="-527"/>
+			<source ref="id14"/>
+			<target ref="id14"/>
+			<label kind="guard" x="-1352" y="-1258">count_stat_1 &lt; max_tracks_1</label>
+			<label kind="synchronisation" x="-1301" y="-1241">enter_station_1!</label>
+			<label kind="assignment" x="-1335" y="-1224">increase_count_1()</label>
+			<nail x="-1207" y="-1190"/>
+			<nail x="-1165" y="-1250"/>
+		</transition>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id14"/>
+			<label kind="synchronisation" x="-1309" y="-1173">exit_station_1!</label>
+			<label kind="assignment" x="-1318" y="-1148">decrease_count_1()</label>
+			<nail x="-1165" y="-1122"/>
+			<nail x="-1207" y="-1173"/>
+		</transition>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id14"/>
+			<label kind="guard" x="-1275" y="-1063">count_stat_4 &lt; max_tracks_4</label>
+			<label kind="synchronisation" x="-1190" y="-1046">enter_station_4!</label>
+			<label kind="assignment" x="-1190" y="-1029">increase_count_4()</label>
+			<nail x="-1054" y="-1029"/>
+			<nail x="-1113" y="-1072"/>
+		</transition>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id14"/>
+			<label kind="synchronisation" x="-1020" y="-1046">exit_station_4!</label>
+			<label kind="assignment" x="-1029" y="-1029">decrease_count_4()</label>
+			<nail x="-986" y="-1072"/>
+			<nail x="-1037" y="-1029"/>
+		</transition>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id14"/>
+			<label kind="guard" x="-884" y="-1199">count_stat_3 &lt; max_tracks_3</label>
+			<label kind="synchronisation" x="-893" y="-1182">enter_station_3!</label>
+			<label kind="assignment" x="-901" y="-1165">increase_count_3()</label>
+			<nail x="-884" y="-1190"/>
+			<nail x="-910" y="-1139"/>
+		</transition>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id14"/>
+			<label kind="synchronisation" x="-910" y="-1258">exit_station_3!</label>
+			<label kind="assignment" x="-901" y="-1241">decrease_count_3()</label>
+			<nail x="-918" y="-1250"/>
+			<nail x="-884" y="-1207"/>
+		</transition>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id14"/>
+			<label kind="guard" x="-1012" y="-1377">count_stat_2 &lt; max_tracks_2</label>
+			<label kind="synchronisation" x="-1012" y="-1360">enter_station_2!</label>
+			<label kind="assignment" x="-1003" y="-1343">increase_count_2()</label>
+			<nail x="-1045" y="-1351"/>
+			<nail x="-978" y="-1318"/>
+		</transition>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id14"/>
+			<label kind="synchronisation" x="-1182" y="-1377">exit_station_2!</label>
+			<label kind="assignment" x="-1216" y="-1360">decrease_count_2()</label>
+			<nail x="-1131" y="-1318"/>
+			<nail x="-1063" y="-1352"/>
 		</transition>
 	</template>
 	<system>// Place template instantiations here.
-train_1 = Train(150 ,150, 100);
-station_1 = Station(3);
+train_1 = Train(150 ,150, 100, 1, 1);
+train_2 = Train(150 ,150, 100, 3, 0);
+train_3 = Train(150 ,150, 100, 4, 0);
+
+station_1 = Station(1, 1, 2, 3, 1, 0, 1, 1);
 
 // List one or more processes to be composed into a system.
-system train_1, station_1;
+system train_1, train_2, train_3, station_1;
     </system>
 	<queries>
 		<query>
