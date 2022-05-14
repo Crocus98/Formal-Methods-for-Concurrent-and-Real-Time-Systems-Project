@@ -67,11 +67,11 @@ void right(){
 		</location>
 		<location id="id8" x="-1428" y="-1470">
 			<name x="-1438" y="-1504">ovest</name>
-			<label kind="invariant" x="-1438" y="-1453">direction = 0</label>
+			<label kind="invariant" x="-1438" y="-1453">direction == 0</label>
 		</location>
 		<location id="id9" x="-1190" y="-1700">
 			<name x="-1200" y="-1734">est</name>
-			<label kind="invariant" x="-1200" y="-1683">direction = 1</label>
+			<label kind="invariant" x="-1258" y="-1683">direction == 1</label>
 		</location>
 		<location id="id10" x="-1011" y="-2108">
 		</location>
@@ -153,7 +153,7 @@ void right(){
 		<transition>
 			<source ref="id6"/>
 			<target ref="id8"/>
-			<label kind="guard" x="-1215" y="-1530">decrease_station()</label>
+			<label kind="assignment" x="-1215" y="-1521">decrease_station()</label>
 		</transition>
 		<transition>
 			<source ref="id6"/>
@@ -163,7 +163,7 @@ void right(){
 		<transition>
 			<source ref="id5"/>
 			<target ref="id8"/>
-			<label kind="guard" x="-1224" y="-1581">decrease_station()</label>
+			<label kind="assignment" x="-1232" y="-1572">decrease_station()</label>
 		</transition>
 		<transition>
 			<source ref="id5"/>
