@@ -1,12 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
 <nta>
-	<declaration>chan enter_station;
+	<declaration>//Train settings
+const int NUM_TRAINS = 7;
+const int SPEED[NUM_TRAINS] = {10,10,10,10,5,5,5};
+const int MAX_CHARGE[NUM_TRAINS] = {150, 150, 150, 150, 150, 150, 150};
+const int INITIAL_CHARGE[NUM_TRAINS] ={100,100,100,100,100,100,100}; //must be less than MAX_CHARGE
+const int INITIAL_STATION[NUM_TRAINS] = {0,0,0,0,0,1,1};
+const int T_LINES[NUM_TRAINS] = {1, 1, 0, 2, 1, 0, 1};
+const int NEXT_STATION[NUM_TRAINS] = {0,0,0,0,0,0,0}; //must be inside the line
 
-int b[4][6] := { {1,2,3,4}, {4,5,6,7}, {1,2,3,4}, {4,5,6,7}, {1,2,3,4}, {4,5,6,7} }; //{statione_in, stazione_f, distanza, delay}</declaration>
+//Station settings
+const int NUM_STATIONS = 5;
+const int MAX_TRACKS[NUM_STATIONS] = {5,5,3,2,3};
+
+//Railways settins
+const int LINES [3][4] = {{0,1,2,3},{0,1,2,4},{3,2,4,-1}}; 
+
+//Channels
+chan enter_station; // [NUM_TRAINS][NUM_STATIONS];
+</declaration>
 	<template>
 		<name x="5" y="5">Train</name>
-		<parameter>int charge, int charge_max, int speed</parameter>
+		<parameter>const int [0,6] id_train, int charge, const int max_charge, const int speed,  int current_station, int line, int next_station</parameter>
 		<declaration>clock mov_time;
 clock waiting_time;
 
@@ -27,9 +43,10 @@ void decrease_charge(){
 			<name x="-570" y="-731">moving</name>
 		</location>
 		<location id="id2" x="-544" y="-476">
-			<name x="-604" y="-459">waiting_free_station</name>
+			<name x="-561" y="-459">waiting</name>
 		</location>
 		<location id="id3" x="-875" y="-476">
+			<name x="-901" y="-459">waiting2</name>
 		</location>
 		<init ref="id0"/>
 		<transition>
@@ -69,7 +86,7 @@ void decrease_charge(){
 		<transition>
 			<source ref="id0"/>
 			<target ref="id0"/>
-			<label kind="guard" x="-1129" y="-748">charge &lt; charge_max</label>
+			<label kind="guard" x="-1130" y="-748">charge &lt; max_charge</label>
 			<label kind="assignment" x="-1112" y="-731">increase_charge()</label>
 			<nail x="-993" y="-697"/>
 			<nail x="-959" y="-756"/>
@@ -106,7 +123,7 @@ void decrease_charge(){
 	</template>
 	<template>
 		<name>Station</name>
-		<parameter>int max_tracks</parameter>
+		<parameter>const int[0,3] id_station, int max_tracks</parameter>
 		<declaration>int count_train = 0;
 
 void increase_count(){
@@ -126,11 +143,20 @@ void increase_count(){
 		</transition>
 	</template>
 	<system>// Place template instantiations here.
-train_1 = Train(150 ,150, 100);
-station_1 = Station(3);
+//id_train, charge, max_charge, speed, current_station, line, next_station
+train_0 = Train (0, INITIAL_CHARGE[0], MAX_CHARGE[0], SPEED[0], INITIAL_STATION[0], T_LINES[0], NEXT_STATION[0]);
+train_1 = Train (1, INITIAL_CHARGE[1], MAX_CHARGE[1], SPEED[1], INITIAL_STATION[1], T_LINES[1], NEXT_STATION[1]);
+train_2 = Train (2, INITIAL_CHARGE[2], MAX_CHARGE[2], SPEED[2], INITIAL_STATION[2], T_LINES[2], NEXT_STATION[2]);
+train_3 = Train (3, INITIAL_CHARGE[3], MAX_CHARGE[3], SPEED[3], INITIAL_STATION[3], T_LINES[3], NEXT_STATION[3]);
+train_4 = Train (4, INITIAL_CHARGE[4], MAX_CHARGE[4], SPEED[4], INITIAL_STATION[4], T_LINES[4], NEXT_STATION[4]);
+train_5 = Train (5, INITIAL_CHARGE[5], MAX_CHARGE[5], SPEED[5], INITIAL_STATION[5], T_LINES[5], NEXT_STATION[5]);
+train_6 = Train (6, INITIAL_CHARGE[6], MAX_CHARGE[6], SPEED[6], INITIAL_STATION[6], T_LINES[6], NEXT_STATION[6]);
+
+
+station_0 = Station(0,3);
 
 // List one or more processes to be composed into a system.
-system train_1, station_1;
+system train_0, train_1, train_2, train_3, train_4, train_5, train_6, station_0;
     </system>
 	<queries>
 		<query>
