@@ -3,7 +3,7 @@
 <nta>
 	<declaration>//Train settings
 const int NUM_TRAINS = 7;
-const int SPEED[NUM_TRAINS] = {10,10,10,10,5,5,5};
+const int SPEED[NUM_TRAINS] = {7,7,8,9,7,10,8};
 const int MAX_CHARGE[NUM_TRAINS] = {150, 150, 150, 150, 150, 150, 150};
 const int INITIAL_CHARGE[NUM_TRAINS] ={100,100,100,100,100,100,100}; //must be less than MAX_CHARGE
 const int INITIAL_STATION[NUM_TRAINS] = {0,0,0,0,0,1,1};
@@ -12,17 +12,27 @@ const int NEXT_STATION[NUM_TRAINS] = {0,0,0,0,0,0,0}; //must be inside the line
 
 //Station settings
 const int NUM_STATIONS = 5;
-const int MAX_TRACKS[NUM_STATIONS] = {5,5,3,2,3};
+const int MAX_TRACKS[NUM_STATIONS] = {4,3,5,3,4};
 
 //Railways settins
-const int LINES [3][4] = {{0,1,2,3},{0,1,2,4},{3,2,4,-1}}; 
+const int LINES [3][4] = {{0,1,2,3},{0,1,2,4},{3,2,4,-1}}; //0,1,2
+const int DISTANCES [5][5] ={{0,70,-1,-1,-1},
+                             {70,0,50,-1,-1},
+                             {-1,50,0,60,80},
+                             {-1,-1,60,0,-1},
+                             {-1,-1,80,-1,0}};
+const int MAX_DELAYS [5][5] ={{0,15,-1,-1,-1},
+                             {15,0,11,-1,-1},
+                             {-1,11,0,12,16},
+                             {-1,-1,12,0,-1},
+                             {-1,-1,16,-1,0}};
 
 //Channels
-chan enter_station; // [NUM_TRAINS][NUM_STATIONS];
+chan enter_queue[NUM_TRAINS][NUM_STATIONS];
 </declaration>
 	<template>
 		<name x="5" y="5">Train</name>
-		<parameter>const int [0,6] id_train, int charge, const int max_charge, const int speed,  int current_station, int line, int next_station</parameter>
+		<parameter>const int [0,6] id_train, int charge, const int max_charge, const int speed,  int current_station, const int line, int next_station</parameter>
 		<declaration>clock mov_time;
 clock waiting_time;
 
@@ -123,23 +133,64 @@ void decrease_charge(){
 	</template>
 	<template>
 		<name>Station</name>
-		<parameter>const int[0,3] id_station, int max_tracks</parameter>
+		<parameter>const int[0,4] id_station,const int max_tracks</parameter>
 		<declaration>int count_train = 0;
+int [-1,NUM_TRAINS]waiting_queue[NUM_TRAINS];
 
 void increase_count(){
     count_train += 1;
+}
+
+void initialize_waiting_queue ()
+{
+    for (i : int[0, NUM_TRAINS-1]){
+        waiting_queue[i] = -1;
+    }
+}
+
+void dequeue ()
+{
+    for (i : int[1,NUM_TRAINS-1]){
+        waiting_queue[i-1] = waiting_queue[i];
+    }
+    waiting_queue[NUM_TRAINS-1] = -1;
+}
+
+void enqueue (int p)
+{
+    int i = 0;
+    while (waiting_queue[i]&gt;=0){
+        i++;
+    }
+    waiting_queue[i]=p;
 }</declaration>
-		<location id="id7" x="-654" y="-459">
+		<location id="id7" x="-1394" y="-884">
+			<name x="-1462" y="-892">Initialize</name>
+			<committed/>
+		</location>
+		<location id="id8" x="-1394" y="-663">
+			<name x="-1436" y="-680">Idle</name>
 		</location>
 		<init ref="id7"/>
 		<transition>
+			<source ref="id8"/>
+			<target ref="id8"/>
+			<nail x="-1258" y="-731"/>
+			<nail x="-1326" y="-756"/>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id8"/>
+			<label kind="select" x="-1470" y="-527">id_train: int [0,NUM_TRAINS-1]</label>
+			<label kind="synchronisation" x="-1479" y="-501">enter_queue[id_train][id_station]?</label>
+			<label kind="assignment" x="-1436" y="-552">enqueue(id_train)</label>
+			<nail x="-1385" y="-552"/>
+			<nail x="-1487" y="-561"/>
+		</transition>
+		<transition>
 			<source ref="id7"/>
-			<target ref="id7"/>
-			<label kind="guard" x="-926" y="-527">count_train &lt; max_tracks</label>
-			<label kind="synchronisation" x="-892" y="-544">enter_station!</label>
-			<label kind="assignment" x="-892" y="-510">increase_count()</label>
-			<nail x="-790" y="-459"/>
-			<nail x="-748" y="-527"/>
+			<target ref="id8"/>
+			<label kind="assignment" x="-1555" y="-782">initialize_waiting_queue()</label>
 		</transition>
 	</template>
 	<system>// Place template instantiations here.
