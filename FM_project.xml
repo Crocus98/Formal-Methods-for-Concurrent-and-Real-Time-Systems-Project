@@ -28,7 +28,8 @@ const int MAX_DELAYS [5][5] ={{0,15,-1,-1,-1},
                              {-1,-1,16,-1,0}};
 
 //Channels
-chan enter_queue[NUM_TRAINS][NUM_STATIONS];
+chan enter_waiting_queue [NUM_TRAINS][NUM_STATIONS];
+chan charging_authorization_revoked [NUM_TRAINS][NUM_STATIONS];
 </declaration>
 	<template>
 		<name x="5" y="5">Train</name>
@@ -134,63 +135,45 @@ void decrease_charge(){
 	<template>
 		<name>Station</name>
 		<parameter>const int[0,4] id_station,const int max_tracks</parameter>
-		<declaration>int count_train = 0;
-int [-1,NUM_TRAINS]waiting_queue[NUM_TRAINS];
+		<declaration>int trains_waiting = 0;
+int trains_inside = 0;
 
-void increase_count(){
-    count_train += 1;
+void increase_waiting_count(){
+    trains_waiting += 1;
 }
 
-void initialize_waiting_queue ()
-{
-    for (i : int[0, NUM_TRAINS-1]){
-        waiting_queue[i] = -1;
-    }
+void increase_inside_count(){
+    trains_inside += 1;
 }
 
-void dequeue ()
-{
-    for (i : int[1,NUM_TRAINS-1]){
-        waiting_queue[i-1] = waiting_queue[i];
+bool authorization_revoked(){
+    if(trains_inside == max_tracks &amp;&amp; trains_waiting &gt; 0){
+        return true;
     }
-    waiting_queue[NUM_TRAINS-1] = -1;
-}
-
-void enqueue (int p)
-{
-    int i = 0;
-    while (waiting_queue[i]&gt;=0){
-        i++;
-    }
-    waiting_queue[i]=p;
+    return false;
 }</declaration>
-		<location id="id7" x="-1394" y="-884">
-			<name x="-1462" y="-892">Initialize</name>
+		<location id="id7" x="-2337" y="-1062">
+			<name x="-2379" y="-1079">Idle</name>
+		</location>
+		<location id="id8" x="-2482" y="-1164">
+			<name x="-2492" y="-1198">Station</name>
+		</location>
+		<location id="id9" x="-2159" y="-935">
 			<committed/>
 		</location>
-		<location id="id8" x="-1394" y="-663">
-			<name x="-1436" y="-680">Idle</name>
-		</location>
-		<init ref="id7"/>
+		<init ref="id8"/>
 		<transition>
-			<source ref="id8"/>
-			<target ref="id8"/>
-			<nail x="-1258" y="-731"/>
-			<nail x="-1326" y="-756"/>
-		</transition>
-		<transition>
-			<source ref="id8"/>
-			<target ref="id8"/>
-			<label kind="select" x="-1470" y="-527">id_train: int [0,NUM_TRAINS-1]</label>
-			<label kind="synchronisation" x="-1479" y="-501">enter_queue[id_train][id_station]?</label>
-			<label kind="assignment" x="-1436" y="-552">enqueue(id_train)</label>
-			<nail x="-1385" y="-552"/>
-			<nail x="-1487" y="-561"/>
+			<source ref="id7"/>
+			<target ref="id9"/>
 		</transition>
 		<transition>
 			<source ref="id7"/>
-			<target ref="id8"/>
-			<label kind="assignment" x="-1555" y="-782">initialize_waiting_queue()</label>
+			<target ref="id7"/>
+			<label kind="select" x="-2337" y="-1207">id_train: int[0, NUM_TRAINS-1]</label>
+			<label kind="synchronisation" x="-2371" y="-1190">enter_waiting_queue[id_train][id_station]?</label>
+			<label kind="assignment" x="-2320" y="-1173">increase_waiting_count()</label>
+			<nail x="-2201" y="-1130"/>
+			<nail x="-2269" y="-1155"/>
 		</transition>
 	</template>
 	<system>// Place template instantiations here.
