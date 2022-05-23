@@ -3,6 +3,7 @@
 <nta>
 	<declaration>//Train settings
 const int NUM_TRAINS = 7;
+const int RECHARGING_MULTIPLIER = 3;
 const int SPEED[NUM_TRAINS] = {7,7,8,9,7,10,8};
 const int MAX_CHARGE[NUM_TRAINS] = {30, 32, 32, 28, 24, 18, 35}; //time
 const int INITIAL_CHARGE[NUM_TRAINS] ={28,28,32,25,24,18,30}; //must be less than MAX_CHARGE
@@ -39,7 +40,7 @@ chan enter_station_request[NUM_TRAINS][NUM_STATIONS];
 chan enter_station_reply_ok[NUM_TRAINS][NUM_STATIONS];
 chan enter_station_reply_ko[NUM_TRAINS][NUM_STATIONS];
 chan exit_station[NUM_STATIONS];
-broadcast chan leave_station[NUM_STATIONS];
+urgent broadcast chan leave_station[NUM_STATIONS];
 
 </declaration>
 	<template>
@@ -62,15 +63,16 @@ int compute_minimal_distance (int id_train, int source, int destination){
     return (DISTANCES[source][destination]/SPEED[id_train]);
 }
 
-void decrease_charge(){
-    charge -= 1;
+void decrease_charge(int dec){
+    charge -= dec;
     if(charge &lt;= 0){
         charge = 0;
     }
 }
 
-void increase_charge(){
-    charge += 3;
+
+void increase_charge(int time_inc){
+    charge += (RECHARGING_MULTIPLIER * time_inc);
     if(charge &gt; max_charge){
         charge = max_charge;
     }
@@ -81,6 +83,15 @@ bool have_to_leave(){
         return true;
     }
     return false;
+}
+
+int get_minimal_recharge_time (){
+    if (compute_minimal_charge(current_station,next_station) &gt; charge + PASSENGERS_TIME * RECHARGING_MULTIPLIER){
+        return (compute_minimal_charge(current_station,next_station) - charge) / RECHARGING_MULTIPLIER;
+    }
+    else{
+        return PASSENGERS_TIME;
+    }
 }
 
 void decrease_waiting_count (){
@@ -133,51 +144,48 @@ void update_train_info(){
     current_station = next_station;
 }</declaration>
 		<location id="id0" x="-1538" y="-696">
-			<name x="-1564" y="-722">Charging</name>
-			<label kind="invariant" x="-1657" y="-739">waiting_time &lt;= PASSENGERS_TIME</label>
+			<name x="-1572" y="-748">Charging</name>
+			<label kind="invariant" x="-1683" y="-731">waiting_time &lt;= get_minimal_recharge_time()</label>
 		</location>
 		<location id="id1" x="-1538" y="-501">
-			<name x="-1530" y="-493">Overcharging</name>
+			<name x="-1632" y="-501">Overcharging</name>
+			<label kind="invariant" x="-1657" y="-484">waiting_time &lt;= 1</label>
 		</location>
 		<location id="id2" x="-1266" y="-501">
 			<name x="-1258" y="-493">Forced_exit</name>
 		</location>
 		<location id="id3" x="-926" y="-501">
-			<name x="-977" y="-493">Moving</name>
+			<name x="-986" y="-501">Moving</name>
+			<label kind="invariant" x="-909" y="-510">mov_time &lt;= compute_minimal_distance(id_train,current_station,next_station)</label>
 		</location>
 		<location id="id4" x="-926" y="-697">
-			<name x="-986" y="-680">Waiting</name>
+			<name x="-986" y="-697">Waiting</name>
 		</location>
 		<location id="id5" x="-926" y="-901">
+			<name x="-1003" y="-935">Waiting_Request_Delay</name>
+			<label kind="invariant" x="-1164" y="-909">waiting_time &lt;= REQUEST_DELAY</label>
 		</location>
 		<init ref="id0"/>
-		<transition>
-			<source ref="id5"/>
-			<target ref="id5"/>
-			<label kind="guard" x="-1445" y="-892">waiting_time &lt;= REQUEST_DELAY</label>
-			<label kind="assignment" x="-1343" y="-875">decrease_charge()</label>
-			<nail x="-1215" y="-901"/>
-			<nail x="-1215" y="-850"/>
-		</transition>
 		<transition>
 			<source ref="id2"/>
 			<target ref="id1"/>
 			<label kind="guard" x="-1462" y="-442">not have_to_leave()</label>
-			<label kind="assignment" x="-1453" y="-425">increase_charge()</label>
+			<label kind="assignment" x="-1453" y="-425">increase_charge(1)</label>
 			<nail x="-1266" y="-408"/>
 			<nail x="-1513" y="-408"/>
 		</transition>
 		<transition>
 			<source ref="id5"/>
 			<target ref="id4"/>
-			<label kind="guard" x="-1147" y="-816">waiting_time &gt; REQUEST_DELAY</label>
-			<label kind="synchronisation" x="-1207" y="-799">enter_station_request[id_train][next_station]!</label>
+			<label kind="guard" x="-1147" y="-824">waiting_time &gt;= REQUEST_DELAY</label>
+			<label kind="synchronisation" x="-1207" y="-807">enter_station_request[id_train][next_station]!</label>
+			<label kind="assignment" x="-1164" y="-790">decrease_charge(REQUEST_DELAY)</label>
 		</transition>
 		<transition>
 			<source ref="id4"/>
 			<target ref="id5"/>
 			<label kind="synchronisation" x="-841" y="-841">enter_station_reply_ko[id_train][next_station]?</label>
-			<label kind="assignment" x="-807" y="-824">waiting_time = 0, decrease_charge()</label>
+			<label kind="assignment" x="-841" y="-824">waiting_time = 0</label>
 			<nail x="-850" y="-697"/>
 			<nail x="-850" y="-901"/>
 		</transition>
@@ -190,16 +198,9 @@ void update_train_info(){
 		<transition>
 			<source ref="id3"/>
 			<target ref="id4"/>
-			<label kind="guard" x="-1411" y="-637">mov_time &gt;= compute_minimal_distance(id_train,current_station,next_station)</label>
-			<label kind="synchronisation" x="-1207" y="-620">enter_station_request[id_train][next_station]!</label>
-		</transition>
-		<transition>
-			<source ref="id3"/>
-			<target ref="id3"/>
-			<label kind="guard" x="-867" y="-433">charge &gt; 0 &amp;&amp; mov_time &lt; compute_minimal_distance(id_train,current_station,next_station)</label>
-			<label kind="assignment" x="-765" y="-416">decrease_charge()</label>
-			<nail x="-705" y="-501"/>
-			<nail x="-705" y="-425"/>
+			<label kind="guard" x="-1411" y="-646">mov_time &gt;= compute_minimal_distance(id_train,current_station,next_station)</label>
+			<label kind="synchronisation" x="-1207" y="-629">enter_station_request[id_train][next_station]!</label>
+			<label kind="assignment" x="-1445" y="-612">decrease_charge(compute_minimal_distance(id_train,current_station,next_station))</label>
 		</transition>
 		<transition>
 			<source ref="id1"/>
@@ -221,28 +222,21 @@ void update_train_info(){
 			<source ref="id1"/>
 			<target ref="id2"/>
 			<label kind="synchronisation" x="-1504" y="-535">leave_station[current_station]?</label>
-			<label kind="assignment" x="-1479" y="-518">increase_charge()</label>
+			<label kind="assignment" x="-1479" y="-518">increase_charge(1)</label>
 		</transition>
 		<transition>
 			<source ref="id1"/>
 			<target ref="id1"/>
-			<label kind="guard" x="-1937" y="-543">charge &lt; max_charge</label>
-			<label kind="assignment" x="-1912" y="-526">increase_charge()</label>
+			<label kind="guard" x="-2048" y="-561">waiting_time &gt;=1 &amp;&amp; charge &lt; max_charge</label>
+			<label kind="assignment" x="-2031" y="-544">increase_charge(1), waiting_time = 0</label>
 			<nail x="-1793" y="-501"/>
 			<nail x="-1793" y="-569"/>
 		</transition>
 		<transition>
 			<source ref="id0"/>
-			<target ref="id0"/>
-			<label kind="guard" x="-1963" y="-781">charge &lt; compute_minimal_charge(current_station,next_station)</label>
-			<label kind="assignment" x="-1963" y="-764">increase_charge()</label>
-			<nail x="-1793" y="-696"/>
-			<nail x="-1793" y="-764"/>
-		</transition>
-		<transition>
-			<source ref="id0"/>
 			<target ref="id1"/>
-			<label kind="guard" x="-1954" y="-628">charge &gt;= compute_minimal_charge(current_station,next_station)</label>
+			<label kind="guard" x="-1827" y="-654">waiting_time &gt;= get_minimal_recharge_time()</label>
+			<label kind="assignment" x="-1946" y="-637">increase_charge(get_minimal_recharge_time()), waiting_time = 0</label>
 		</transition>
 	</template>
 	<template>
@@ -286,7 +280,7 @@ bool authorization_granted(){
 			<committed/>
 		</location>
 		<location id="id8" x="-1921" y="-1037">
-			<name x="-1904" y="-1054">Free_Station</name>
+			<name x="-1904" y="-1045">Handle_Force_Leave</name>
 			<committed/>
 		</location>
 		<init ref="id6"/>
