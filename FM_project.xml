@@ -48,7 +48,8 @@ broadcast chan leave_station[NUM_STATIONS];
 		<declaration>clock mov_time;
 clock waiting_time;
 
-int request_threshold = 2, passengers_threshold = 5;
+int request_threshold = 2;
+int passengers_threshold = 5;
 
 
 
@@ -58,7 +59,7 @@ int compute_minimal_charge (int source, int destination){
 }
 
 int compute_minimal_distance (int id_train, int source, int destination){
-    return DISTANCES[source][destination]/SPEED[id_train];
+    return (DISTANCES[source][destination]/SPEED[id_train]);
 }
 
 void decrease_charge(){
@@ -90,10 +91,9 @@ void update_train_info(){
     int next_index = 0;
     for (current_index : int[0, NUM_MAX_STATIONS_LINE-1])
     {
-        if(LINES[line][current_index] == current_station){
-            current_station = next_station;
+        if(LINES[line][current_index] == current_station){ //current index found
+            current_station = next_station; //new current station found
             next_index = current_index;
-            //Find indexes in the line of the current and next station
             if(next_index-1 &lt; 0 || LINES[line][next_index-1] == -1){
                 next_index = next_index + 1;
             }
@@ -111,14 +111,14 @@ void update_train_info(){
             if(current_index &lt; next_index){
                 if(next_index+1 &gt; NUM_MAX_STATIONS_LINE-1 || LINES[line][next_index+1]== -1)
                 {
-                    next_index -= 1;
+                    next_index = next_index - 1;
                 }
                 else
                 {
-                    next_index += 1;
+                    next_index = next_index + 1;
                 }
             }
-            else if(next_index -1 &lt; 0)
+            else if(next_index -1 &lt; 0 || LINES[line][next_index-1]== -1)
             {
                 next_index +=1;
             }
@@ -145,17 +145,15 @@ void update_train_info(){
 		<location id="id3" x="-926" y="-501">
 			<name x="-977" y="-493">Moving</name>
 		</location>
-		<location id="id4" x="-1283" y="-212">
-		</location>
-		<location id="id5" x="-926" y="-697">
+		<location id="id4" x="-926" y="-697">
 			<name x="-986" y="-680">Waiting</name>
 		</location>
-		<location id="id6" x="-926" y="-901">
+		<location id="id5" x="-926" y="-901">
 		</location>
 		<init ref="id0"/>
 		<transition>
-			<source ref="id6"/>
-			<target ref="id6"/>
+			<source ref="id5"/>
+			<target ref="id5"/>
 			<label kind="guard" x="-1445" y="-892">waiting_time &lt;= REQUEST_DELAY</label>
 			<label kind="assignment" x="-1343" y="-875">decrease_charge()</label>
 			<nail x="-1215" y="-901"/>
@@ -170,28 +168,28 @@ void update_train_info(){
 			<nail x="-1513" y="-408"/>
 		</transition>
 		<transition>
-			<source ref="id6"/>
-			<target ref="id5"/>
+			<source ref="id5"/>
+			<target ref="id4"/>
 			<label kind="guard" x="-1147" y="-816">waiting_time &gt; REQUEST_DELAY</label>
 			<label kind="synchronisation" x="-1207" y="-799">enter_station_request[id_train][next_station]!</label>
 		</transition>
 		<transition>
-			<source ref="id5"/>
-			<target ref="id6"/>
+			<source ref="id4"/>
+			<target ref="id5"/>
 			<label kind="synchronisation" x="-841" y="-841">enter_station_reply_ko[id_train][next_station]?</label>
 			<label kind="assignment" x="-807" y="-824">waiting_time = 0, decrease_charge()</label>
 			<nail x="-850" y="-697"/>
 			<nail x="-850" y="-901"/>
 		</transition>
 		<transition>
-			<source ref="id5"/>
+			<source ref="id4"/>
 			<target ref="id0"/>
 			<label kind="synchronisation" x="-1360" y="-731">enter_station_reply_ok[id_train][next_station]?</label>
 			<label kind="assignment" x="-1317" y="-714">waiting_time = 0, update_train_info()</label>
 		</transition>
 		<transition>
 			<source ref="id3"/>
-			<target ref="id5"/>
+			<target ref="id4"/>
 			<label kind="guard" x="-1411" y="-637">mov_time &gt;= compute_minimal_distance(id_train,current_station,next_station)</label>
 			<label kind="synchronisation" x="-1207" y="-620">enter_station_request[id_train][next_station]!</label>
 		</transition>
@@ -280,43 +278,44 @@ bool authorization_granted(){
     }
     return false;
 }</declaration>
-		<location id="id7" x="-2363" y="-1198">
+		<location id="id6" x="-2363" y="-1198">
 			<name x="-2354" y="-1190">Idle</name>
 		</location>
-		<location id="id8" x="-2150" y="-909">
+		<location id="id7" x="-2150" y="-909">
+			<name x="-2201" y="-892">Handle_Request</name>
 			<committed/>
 		</location>
-		<location id="id9" x="-1921" y="-1037">
+		<location id="id8" x="-1921" y="-1037">
+			<name x="-1904" y="-1054">Free_Station</name>
 			<committed/>
 		</location>
-		<init ref="id7"/>
+		<init ref="id6"/>
 		<transition>
-			<source ref="id7"/>
-			<target ref="id7"/>
-			<label kind="guard" x="-2686" y="-1215">not trains_inside_null()</label>
+			<source ref="id6"/>
+			<target ref="id6"/>
 			<label kind="synchronisation" x="-2686" y="-1198">exit_station[id_station]?</label>
 			<label kind="assignment" x="-2694" y="-1181">decrease_inside_count()</label>
 			<nail x="-2533" y="-1198"/>
 			<nail x="-2533" y="-1147"/>
 		</transition>
 		<transition>
-			<source ref="id9"/>
-			<target ref="id7"/>
+			<source ref="id8"/>
+			<target ref="id6"/>
 			<label kind="synchronisation" x="-2218" y="-1351">leave_station[id_station]!</label>
 			<label kind="assignment" x="-2218" y="-1334">increase_waiting_count()</label>
 			<nail x="-1921" y="-1309"/>
 			<nail x="-2363" y="-1309"/>
 		</transition>
 		<transition>
-			<source ref="id8"/>
-			<target ref="id9"/>
+			<source ref="id7"/>
+			<target ref="id8"/>
 			<label kind="guard" x="-2006" y="-909">not authorization_granted()</label>
 			<label kind="synchronisation" x="-2048" y="-892">enter_station_reply_ko[temp_train][id_station]!</label>
 			<nail x="-1921" y="-909"/>
 		</transition>
 		<transition>
-			<source ref="id8"/>
-			<target ref="id7"/>
+			<source ref="id7"/>
+			<target ref="id6"/>
 			<label kind="guard" x="-2261" y="-1258">authorization_granted()</label>
 			<label kind="synchronisation" x="-2312" y="-1224">enter_station_reply_ok[temp_train][id_station]!</label>
 			<label kind="assignment" x="-2261" y="-1241">increase_inside_count()</label>
@@ -324,8 +323,8 @@ bool authorization_granted(){
 			<nail x="-2150" y="-1198"/>
 		</transition>
 		<transition>
-			<source ref="id7"/>
-			<target ref="id8"/>
+			<source ref="id6"/>
+			<target ref="id7"/>
 			<label kind="select" x="-2516" y="-900">id_train: int[0, NUM_TRAINS-1]</label>
 			<label kind="synchronisation" x="-2559" y="-883">enter_station_request[id_train][id_station]?</label>
 			<label kind="assignment" x="-2491" y="-866">temp_train = id_train</label>
