@@ -47,6 +47,7 @@ broadcast chan leave_station[NUM_STATIONS];
 		<parameter>const int [0,6] id_train, int charge, const int max_charge, const int speed,  int current_station, const int line, int next_station</parameter>
 		<declaration>clock mov_time;
 clock waiting_time;
+clock unit_time;
 
 int request_threshold = 2;
 int passengers_threshold = 5;
@@ -133,29 +134,33 @@ void update_train_info(){
     current_station = next_station;
 }</declaration>
 		<location id="id0" x="-1538" y="-696">
-			<name x="-1564" y="-722">Charging</name>
-			<label kind="invariant" x="-1657" y="-739">waiting_time &lt;= PASSENGERS_TIME</label>
+			<name x="-1598" y="-688">Charging</name>
+			<label kind="invariant" x="-1725" y="-671">waiting_time &lt;= PASSENGERS_TIME &amp;&amp; unit_time&lt;=1</label>
 		</location>
 		<location id="id1" x="-1538" y="-501">
-			<name x="-1530" y="-493">Overcharging</name>
+			<name x="-1632" y="-501">Overcharging</name>
+			<label kind="invariant" x="-1623" y="-484">unit_time&lt;=1</label>
 		</location>
 		<location id="id2" x="-1266" y="-501">
 			<name x="-1258" y="-493">Forced_exit</name>
 		</location>
 		<location id="id3" x="-926" y="-501">
 			<name x="-977" y="-493">Moving</name>
+			<label kind="invariant" x="-1011" y="-476">unit_time&lt;=1;</label>
 		</location>
 		<location id="id4" x="-926" y="-697">
 			<name x="-986" y="-680">Waiting</name>
 		</location>
 		<location id="id5" x="-926" y="-901">
+			<name x="-986" y="-952">Waiting_Request_Delay</name>
+			<label kind="invariant" x="-960" y="-935">unit_time &lt;=1</label>
 		</location>
 		<init ref="id0"/>
 		<transition>
 			<source ref="id5"/>
 			<target ref="id5"/>
-			<label kind="guard" x="-1445" y="-892">waiting_time &lt;= REQUEST_DELAY</label>
-			<label kind="assignment" x="-1343" y="-875">decrease_charge()</label>
+			<label kind="guard" x="-1547" y="-892">waiting_time &lt;= REQUEST_DELAY &amp;&amp; unit_time &gt;=1</label>
+			<label kind="assignment" x="-1436" y="-875">decrease_charge(), unit_time = 0</label>
 			<nail x="-1215" y="-901"/>
 			<nail x="-1215" y="-850"/>
 		</transition>
@@ -177,7 +182,7 @@ void update_train_info(){
 			<source ref="id4"/>
 			<target ref="id5"/>
 			<label kind="synchronisation" x="-841" y="-841">enter_station_reply_ko[id_train][next_station]?</label>
-			<label kind="assignment" x="-807" y="-824">waiting_time = 0, decrease_charge()</label>
+			<label kind="assignment" x="-841" y="-824">waiting_time = 0, decrease_charge()</label>
 			<nail x="-850" y="-697"/>
 			<nail x="-850" y="-901"/>
 		</transition>
@@ -196,8 +201,8 @@ void update_train_info(){
 		<transition>
 			<source ref="id3"/>
 			<target ref="id3"/>
-			<label kind="guard" x="-867" y="-433">charge &gt; 0 &amp;&amp; mov_time &lt; compute_minimal_distance(id_train,current_station,next_station)</label>
-			<label kind="assignment" x="-765" y="-416">decrease_charge()</label>
+			<label kind="guard" x="-867" y="-433">unit_time&gt;=1 &amp;&amp; mov_time &lt; compute_minimal_distance(id_train,current_station,next_station)</label>
+			<label kind="assignment" x="-867" y="-416">decrease_charge(), unit_time = 0</label>
 			<nail x="-705" y="-501"/>
 			<nail x="-705" y="-425"/>
 		</transition>
@@ -226,16 +231,16 @@ void update_train_info(){
 		<transition>
 			<source ref="id1"/>
 			<target ref="id1"/>
-			<label kind="guard" x="-1937" y="-543">charge &lt; max_charge</label>
-			<label kind="assignment" x="-1912" y="-526">increase_charge()</label>
+			<label kind="guard" x="-2040" y="-544">charge &lt; max_charge &amp;&amp; unit_time &gt;=1</label>
+			<label kind="assignment" x="-1997" y="-527">increase_charge(), unit_time = 0</label>
 			<nail x="-1793" y="-501"/>
 			<nail x="-1793" y="-569"/>
 		</transition>
 		<transition>
 			<source ref="id0"/>
 			<target ref="id0"/>
-			<label kind="guard" x="-1963" y="-781">charge &lt; compute_minimal_charge(current_station,next_station)</label>
-			<label kind="assignment" x="-1963" y="-764">increase_charge()</label>
+			<label kind="guard" x="-2014" y="-782">charge &lt; compute_minimal_charge(current_station,next_station) &amp;&amp; unit_time&gt;=1</label>
+			<label kind="assignment" x="-2014" y="-765">increase_charge(), unit_time = 0</label>
 			<nail x="-1793" y="-696"/>
 			<nail x="-1793" y="-764"/>
 		</transition>
