@@ -193,7 +193,7 @@ void update_train_info(){
 			<source ref="id4"/>
 			<target ref="id0"/>
 			<label kind="synchronisation" x="-1360" y="-731">enter_station_reply_ok[id_train][next_station]?</label>
-			<label kind="assignment" x="-1317" y="-714">waiting_time = 0, update_train_info()</label>
+			<label kind="assignment" x="-1377" y="-714">mov_time = 0, waiting_time = 0, update_train_info()</label>
 		</transition>
 		<transition>
 			<source ref="id3"/>
@@ -207,7 +207,6 @@ void update_train_info(){
 			<target ref="id3"/>
 			<label kind="guard" x="-1402" y="-340">charge == max_charge</label>
 			<label kind="synchronisation" x="-1419" y="-323">exit_station[current_station]!</label>
-			<label kind="assignment" x="-1368" y="-306">mov_time = 0</label>
 			<nail x="-1538" y="-340"/>
 			<nail x="-926" y="-340"/>
 		</transition>
@@ -216,7 +215,7 @@ void update_train_info(){
 			<target ref="id3"/>
 			<label kind="guard" x="-1139" y="-552">have_to_leave()</label>
 			<label kind="synchronisation" x="-1173" y="-535">exit_station[current_station]!</label>
-			<label kind="assignment" x="-1215" y="-518">mov_time = 0, decrease_waiting_count ()</label>
+			<label kind="assignment" x="-1164" y="-518">decrease_waiting_count ()</label>
 		</transition>
 		<transition>
 			<source ref="id1"/>
@@ -236,7 +235,7 @@ void update_train_info(){
 			<source ref="id0"/>
 			<target ref="id1"/>
 			<label kind="guard" x="-1827" y="-654">waiting_time &gt;= get_minimal_recharge_time()</label>
-			<label kind="assignment" x="-1946" y="-637">increase_charge(get_minimal_recharge_time()), waiting_time = 0</label>
+			<label kind="assignment" x="-1955" y="-637">increase_charge(get_minimal_recharge_time()), waiting_time = 0</label>
 		</transition>
 	</template>
 	<template>
