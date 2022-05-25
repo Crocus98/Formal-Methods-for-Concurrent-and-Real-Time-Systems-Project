@@ -29,17 +29,17 @@ const int DISTANCES [NUM_STATIONS][NUM_STATIONS] ={{0,70,-1,-1,-1},
                                                      {-1,50,0,60,80},
                                                      {-1,-1,60,0,-1},
                                                      {-1,-1,80,-1,0}};
-const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,15,-1,-1,-1},
-                                                     {15,0,11,-1,-1},
-                                                     {-1,11,0,12,16},
-                                                     {-1,-1,12,0,-1},
-                                                     {-1,-1,16,-1,0}};
+const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,17,-1,-1,-1},
+                                                     {17,0,14,-1,-1},
+                                                     {-1,14,0,14,18},
+                                                     {-1,-1,14,0,-1},
+                                                     {-1,-1,18,-1,0}};
 
 //Channels
 chan enter_station_request[NUM_TRAINS][NUM_STATIONS];
-broadcast chan enter_station_reply_ok[NUM_TRAINS][NUM_STATIONS];
-broadcast chan enter_station_reply_ko[NUM_TRAINS][NUM_STATIONS];
-broadcast chan exit_station[NUM_STATIONS];
+urgent chan enter_station_reply_ok[NUM_TRAINS][NUM_STATIONS]; //broadcast
+urgent chan enter_station_reply_ko[NUM_TRAINS][NUM_STATIONS]; //broadcast
+urgent chan exit_station[NUM_STATIONS];
 urgent broadcast chan leave_station[NUM_STATIONS];
 
 </declaration>
