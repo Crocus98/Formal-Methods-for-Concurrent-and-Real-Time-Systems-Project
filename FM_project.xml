@@ -1,7 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
 <nta>
-	<declaration>//Train settings
+	<declaration>//SIMPLE SETTINGS
+//Train settings
+const int NUM_TRAINS = 3;
+const int RECHARGING_MULTIPLIER = 3;
+const int SPEED[NUM_TRAINS] = {7,10,8};
+const int MAX_CHARGE[NUM_TRAINS] = {30,35,28}; //time
+const int INITIAL_CHARGE[NUM_TRAINS] ={28,30,25}; //must be less than MAX_CHARGE
+const int INITIAL_STATION[NUM_TRAINS] = {0,0,2};
+const int T_LINES[NUM_TRAINS] = {0,0,0};
+const int NEXT_STATION[NUM_TRAINS] = {1,1,1}; //must be inside the line
+
+
+//Station settings
+const int NUM_STATIONS = 3;
+const int MAX_TRACKS[NUM_STATIONS] = {2,2,1};
+const int PASSENGERS_TIME = 3;
+const int REQUEST_DELAY = 2;
+const int INITIAL_TRAINS_INSIDE[NUM_STATIONS] = {2,0,1};
+int FORCED_TO_LEAVE_COUNT [NUM_STATIONS] = {0,0,0};
+
+//Railways settins
+const int NUM_LINES = 1;
+const int NUM_MAX_STATIONS_LINE = 3;
+const int LINES[NUM_LINES][NUM_MAX_STATIONS_LINE] = {{0,1,2}}; //0,1,2
+const int DISTANCES [NUM_STATIONS][NUM_STATIONS] ={{0,70,-1},
+                                                   {70,0,50},
+                                                   {-1,50,0}};
+const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,100,-1},
+                                                    {100,0,100},
+                                                    {-1,100,0}};
+
+//Channels
+chan enter_station_request[NUM_TRAINS][NUM_STATIONS];
+urgent chan enter_station_reply_ok[NUM_TRAINS][NUM_STATIONS]; //broadcast
+urgent chan enter_station_reply_ko[NUM_TRAINS][NUM_STATIONS]; //broadcast
+chan exit_station[NUM_STATIONS];
+urgent broadcast chan leave_station[NUM_STATIONS];
+
+/*
+//COMPLETE SETTINGS
+//Train settings
 const int NUM_TRAINS = 7;
 const int RECHARGING_MULTIPLIER = 3;
 const int SPEED[NUM_TRAINS] = {7,7,8,9,7,10,8};
@@ -41,7 +81,7 @@ urgent chan enter_station_reply_ok[NUM_TRAINS][NUM_STATIONS]; //broadcast
 urgent chan enter_station_reply_ko[NUM_TRAINS][NUM_STATIONS]; //broadcast
 chan exit_station[NUM_STATIONS];
 urgent broadcast chan leave_station[NUM_STATIONS];
-
+*/
 </declaration>
 	<template>
 		<name x="5" y="5">Train</name>
@@ -59,7 +99,7 @@ int compute_minimal_charge (){
     return MAX_DELAYS[current_station][next_station];
 }
 
-int compute_minimal_distance (){
+int compute_minimal_travel_time (){
     return (DISTANCES[current_station][next_station]/SPEED[id_train]);
 }
 
@@ -85,9 +125,13 @@ bool have_to_leave(){
     return false;
 }
 
-int leave_max_time (){
-    int spare_time = (compute_minimal_charge() * 2) / 10.0;
-    return (MAX_DELAYS[current_station][next_station] - spare_time - compute_minimal_distance());
+int leave_max_charge(){
+    int spare_time = (compute_minimal_charge() * 2) / 10;
+    int charge_to_aim = compute_minimal_charge() - spare_time - compute_minimal_travel_time();
+    if(charge_to_aim &gt;= max_charge){
+        return max_charge;
+    }
+    return charge_to_aim;
 }
 
 int get_minimal_recharge_time (){
@@ -157,7 +201,7 @@ void update_train_info(){
 		</location>
 		<location id="id3" x="-926" y="-501">
 			<name x="-986" y="-501">Moving</name>
-			<label kind="invariant" x="-909" y="-510">mov_time &lt;= compute_minimal_distance()</label>
+			<label kind="invariant" x="-909" y="-510">mov_time &lt;= compute_minimal_travel_time()</label>
 		</location>
 		<location id="id4" x="-926" y="-697">
 			<name x="-986" y="-697">Waiting</name>
@@ -199,15 +243,15 @@ void update_train_info(){
 		<transition>
 			<source ref="id3"/>
 			<target ref="id4"/>
-			<label kind="guard" x="-1198" y="-646">mov_time &gt;= compute_minimal_distance()</label>
+			<label kind="guard" x="-1198" y="-646">mov_time &gt;= compute_minimal_travel_time()</label>
 			<label kind="synchronisation" x="-1215" y="-629">enter_station_request[id_train][next_station]!</label>
-			<label kind="assignment" x="-1224" y="-612">decrease_charge(compute_minimal_distance())</label>
+			<label kind="assignment" x="-1224" y="-612">decrease_charge(compute_minimal_travel_time())</label>
 		</transition>
 		<transition>
 			<source ref="id1"/>
 			<target ref="id3"/>
-			<label kind="guard" x="-1402" y="-340">charge == max_charge</label>
-			<label kind="synchronisation" x="-1419" y="-323">exit_station[current_station]!</label>
+			<label kind="guard" x="-1504" y="-340">waiting_time &gt;=1 &amp;&amp; charge &gt;= leave_max_charge()</label>
+			<label kind="synchronisation" x="-1504" y="-323">exit_station[current_station]!</label>
 			<nail x="-1538" y="-340"/>
 			<nail x="-926" y="-340"/>
 		</transition>
@@ -226,7 +270,7 @@ void update_train_info(){
 		<transition>
 			<source ref="id1"/>
 			<target ref="id1"/>
-			<label kind="guard" x="-2065" y="-561">waiting_time &gt;=1 &amp;&amp; charge &lt; max_charge</label>
+			<label kind="guard" x="-2116" y="-561">waiting_time &gt;=1 &amp;&amp; charge &lt; leave_max_charge()</label>
 			<label kind="assignment" x="-2031" y="-544">increase_charge(1), waiting_time = 0</label>
 			<nail x="-1793" y="-501"/>
 			<nail x="-1793" y="-569"/>
@@ -234,8 +278,8 @@ void update_train_info(){
 		<transition>
 			<source ref="id0"/>
 			<target ref="id1"/>
-			<label kind="guard" x="-1844" y="-654">waiting_time &gt;= (get_minimal_recharge_time()-1)</label>
-			<label kind="assignment" x="-1955" y="-637">increase_charge(get_minimal_recharge_time()-1), waiting_time = 0</label>
+			<label kind="guard" x="-1870" y="-654">waiting_time &gt;= (get_minimal_recharge_time()-1)</label>
+			<label kind="assignment" x="-1972" y="-637">increase_charge(get_minimal_recharge_time()-1), waiting_time = 0</label>
 		</transition>
 	</template>
 	<template>
@@ -330,7 +374,22 @@ bool authorization_granted(){
 			<nail x="-2592" y="-2821"/>
 		</transition>
 	</template>
-	<system>// Place template instantiations here.
+	<system>//SIMPLE SETTINGS
+//id_train, charge, max_charge, speed, current_station, line, next_station
+train_0 = Train (0, INITIAL_CHARGE[0], MAX_CHARGE[0], SPEED[0], INITIAL_STATION[0], T_LINES[0], NEXT_STATION[0]);
+train_1 = Train (1, INITIAL_CHARGE[1], MAX_CHARGE[1], SPEED[1], INITIAL_STATION[1], T_LINES[1], NEXT_STATION[1]);
+train_2 = Train (2, INITIAL_CHARGE[2], MAX_CHARGE[2], SPEED[2], INITIAL_STATION[2], T_LINES[2], NEXT_STATION[2]);
+
+//id_station, max_tracks
+station_0 = Station(0,MAX_TRACKS[0],INITIAL_TRAINS_INSIDE[0]);
+station_1 = Station(1,MAX_TRACKS[1],INITIAL_TRAINS_INSIDE[1]);
+station_2 = Station(2,MAX_TRACKS[2],INITIAL_TRAINS_INSIDE[2]);
+
+// List one or more processes to be composed into a system.
+system train_0, train_1, train_2, station_0, station_1, station_2;
+
+/*
+//COMPLETE SETTINGS
 //id_train, charge, max_charge, speed, current_station, line, next_station
 train_0 = Train (0, INITIAL_CHARGE[0], MAX_CHARGE[0], SPEED[0], INITIAL_STATION[0], T_LINES[0], NEXT_STATION[0]);
 train_1 = Train (1, INITIAL_CHARGE[1], MAX_CHARGE[1], SPEED[1], INITIAL_STATION[1], T_LINES[1], NEXT_STATION[1]);
@@ -349,7 +408,7 @@ station_4 = Station(4,MAX_TRACKS[4],INITIAL_TRAINS_INSIDE[4]);
 
 // List one or more processes to be composed into a system.
 system train_0, train_1, train_2, train_3, train_4, train_5, train_6, station_0, station_1, station_2, station_3, station_4;
-    </system>
+*/</system>
 	<queries>
 		<query>
 			<formula></formula>
