@@ -3,7 +3,7 @@
 <nta>
 	<declaration>//SIMPLE SETTINGS
 //Train settings
-/*const int NUM_TRAINS = 3;
+const int NUM_TRAINS = 3;
 const int RECHARGING_MULTIPLIER = 3;
 const int SPEED[NUM_TRAINS] = {7,10,8};
 const int MAX_CHARGE[NUM_TRAINS] = {30,35,28}; //time
@@ -33,13 +33,13 @@ const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,100,-1},
                                                     {-1,100,0}};
 
 //Channels
-chan enter_station_request[NUM_TRAINS][NUM_STATIONS];
+broadcast chan enter_station_request[NUM_TRAINS][NUM_STATIONS];
 urgent chan enter_station_reply_ok[NUM_TRAINS][NUM_STATIONS]; //broadcast
 urgent chan enter_station_reply_ko[NUM_TRAINS][NUM_STATIONS]; //broadcast
 chan exit_station[NUM_STATIONS];
 urgent broadcast chan leave_station[NUM_STATIONS];
-*/
 
+/*
 //COMPLETE SETTINGS
 //Train settings
 const int NUM_TRAINS = 7;
@@ -81,7 +81,7 @@ urgent chan enter_station_reply_ok[NUM_TRAINS][NUM_STATIONS]; //broadcast
 urgent chan enter_station_reply_ko[NUM_TRAINS][NUM_STATIONS]; //broadcast
 chan exit_station[NUM_STATIONS];
 urgent broadcast chan leave_station[NUM_STATIONS];
-
+*/
 </declaration>
 	<template>
 		<name x="5" y="5">Train</name>
@@ -125,11 +125,15 @@ bool have_to_leave(){
     return false;
 }
 
+void train_exited(){
+    FORCED_TO_LEAVE_COUNT [current_station] = 0;
+}
+
 int leave_max_charge(){
     int spare_time = (compute_minimal_charge() * 2) / 10;
     int charge_to_aim = compute_minimal_charge() - spare_time - compute_minimal_travel_time();
-    if(charge_to_aim &gt;= max_charge){
-        return max_charge;
+    if(charge_to_aim &gt;= (max_charge-charge)){
+        return max_charge-charge;
     }
     return charge_to_aim;
 }
@@ -198,6 +202,7 @@ void update_train_info(){
 		</location>
 		<location id="id2" x="-1266" y="-501">
 			<name x="-1258" y="-493">Forced_exit</name>
+			<committed/>
 		</location>
 		<location id="id3" x="-926" y="-501">
 			<name x="-986" y="-501">Moving</name>
@@ -258,8 +263,9 @@ void update_train_info(){
 		<transition>
 			<source ref="id2"/>
 			<target ref="id3"/>
-			<label kind="guard" x="-1156" y="-544">have_to_leave()</label>
-			<label kind="synchronisation" x="-1190" y="-527">exit_station[current_station]!</label>
+			<label kind="guard" x="-1156" y="-552">have_to_leave()</label>
+			<label kind="synchronisation" x="-1190" y="-535">exit_station[current_station]!</label>
+			<label kind="assignment" x="-1147" y="-518">train_exited()</label>
 		</transition>
 		<transition>
 			<source ref="id1"/>
@@ -307,20 +313,16 @@ int [0, NUM_TRAINS-1] temp_train;
 //Station functions
 void increase_inside_count(){
     trains_inside += 1;
+    if(trains_inside == max_tracks){
+        FORCED_TO_LEAVE_COUNT [id_station] = 1;
+    }
 }
 
 void decrease_inside_count(){
-    trains_inside -= 1;
-}
-
-void increase_waiting_count(){
-    FORCED_TO_LEAVE_COUNT [id_station] += 1;
-}
-
-void decrease_waiting_count (){
-    if(FORCED_TO_LEAVE_COUNT[id_station] &gt; 0){
-        FORCED_TO_LEAVE_COUNT[id_station] -= 1;
+    if(trains_inside == max_tracks){
+        FORCED_TO_LEAVE_COUNT [id_station] = 0;
     }
+    trains_inside -= 1;
 }
 
 bool trains_inside_null (){
@@ -348,7 +350,7 @@ bool authorization_granted(){
 			<source ref="id8"/>
 			<target ref="id8"/>
 			<label kind="synchronisation" x="-2320" y="-2745">exit_station[id_station]?</label>
-			<label kind="assignment" x="-2320" y="-2728">decrease_inside_count(), decrease_waiting_count()</label>
+			<label kind="assignment" x="-2320" y="-2728">decrease_inside_count()</label>
 			<nail x="-2380" y="-2711"/>
 			<nail x="-2320" y="-2711"/>
 		</transition>
@@ -357,7 +359,6 @@ bool authorization_granted(){
 			<target ref="id7"/>
 			<label kind="guard" x="-2252" y="-3043">not authorization_granted()</label>
 			<label kind="synchronisation" x="-2295" y="-3026">enter_station_reply_ko[temp_train][id_station]!</label>
-			<label kind="assignment" x="-2235" y="-3009">increase_waiting_count()</label>
 			<nail x="-2159" y="-2822"/>
 			<nail x="-2159" y="-3187"/>
 			<nail x="-2592" y="-3187"/>
@@ -366,7 +367,7 @@ bool authorization_granted(){
 			<source ref="id7"/>
 			<target ref="id7"/>
 			<label kind="synchronisation" x="-2923" y="-3110">exit_station[id_station]?</label>
-			<label kind="assignment" x="-3093" y="-3093">decrease_inside_count(), decrease_waiting_count()</label>
+			<label kind="assignment" x="-2924" y="-3094">decrease_inside_count()</label>
 			<nail x="-2762" y="-3110"/>
 			<nail x="-2762" y="-3059"/>
 		</transition>
@@ -390,7 +391,7 @@ bool authorization_granted(){
 	</template>
 	<system>//SIMPLE SETTINGS
 //id_train, charge, max_charge, speed, current_station, line, next_station
-/*train_0 = Train (0, INITIAL_CHARGE[0], MAX_CHARGE[0], SPEED[0], INITIAL_STATION[0], T_LINES[0], NEXT_STATION[0]);
+train_0 = Train (0, INITIAL_CHARGE[0], MAX_CHARGE[0], SPEED[0], INITIAL_STATION[0], T_LINES[0], NEXT_STATION[0]);
 train_1 = Train (1, INITIAL_CHARGE[1], MAX_CHARGE[1], SPEED[1], INITIAL_STATION[1], T_LINES[1], NEXT_STATION[1]);
 train_2 = Train (2, INITIAL_CHARGE[2], MAX_CHARGE[2], SPEED[2], INITIAL_STATION[2], T_LINES[2], NEXT_STATION[2]);
 
@@ -401,8 +402,8 @@ station_2 = Station(2,MAX_TRACKS[2],INITIAL_TRAINS_INSIDE[2]);
 
 // List one or more processes to be composed into a system.
 system train_0, train_1, train_2, station_0, station_1, station_2;
-*/
 
+/*
 //COMPLETE SETTINGS
 //id_train, charge, max_charge, speed, current_station, line, next_station
 train_0 = Train (0, INITIAL_CHARGE[0], MAX_CHARGE[0], SPEED[0], INITIAL_STATION[0], T_LINES[0], NEXT_STATION[0]);
@@ -422,7 +423,7 @@ station_4 = Station(4,MAX_TRACKS[4],INITIAL_TRAINS_INSIDE[4]);
 
 // List one or more processes to be composed into a system.
 system train_0, train_1, train_2, train_3, train_4, train_5, train_6, station_0, station_1, station_2, station_3, station_4;
-</system>
+*/</system>
 	<queries>
 		<query>
 			<formula></formula>
