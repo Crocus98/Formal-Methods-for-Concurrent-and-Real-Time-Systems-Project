@@ -85,14 +85,13 @@ urgent broadcast chan leave_station[NUM_STATIONS];
 
 //Channels
 chan enter_station_request[NUM_TRAINS][NUM_STATIONS];
-urgent chan enter_station_reply_ok[NUM_TRAINS][NUM_STATIONS]; //broadcast
-urgent chan enter_station_reply_ko[NUM_TRAINS][NUM_STATIONS]; //broadcast
+broadcast chan enter_station_reply_ok[NUM_TRAINS][NUM_STATIONS]; //broadcast
+urgent broadcast chan enter_station_reply_ko[NUM_STATIONS]; //broadcast
 chan exit_station[NUM_STATIONS];
-broadcast chan leave_station[NUM_STATIONS];
 </declaration>
 	<template>
 		<name x="5" y="5">Train</name>
-		<parameter>const int [0,2] id_train, int charge, const int max_charge, const int speed,  int current_station, const int line, int next_station</parameter>
+		<parameter>const int [0,NUM_TRAINS-1] id_train, int charge, const int max_charge, const int speed,  int current_station, const int line, int next_station</parameter>
 		<declaration>clock mov_time;
 clock waiting_time;
 
@@ -110,7 +109,14 @@ int compute_minimal_charge (){
 }
 
 int compute_minimal_travel_time (){
-    return (DISTANCES[current_station][next_station]/SPEED[id_train]);
+    int minimal_travel_time = DISTANCES[current_station][next_station];
+    for (number : int[0, 1000]){
+        minimal_travel_time -= SPEED[id_train];
+        if(minimal_travel_time &lt;=0){
+            return number;
+        }
+    }
+    return 0;
 }
 
 int get_minimal_recharge_time (){
@@ -245,7 +251,7 @@ void update_train_info(){
 		<transition>
 			<source ref="id4"/>
 			<target ref="id5"/>
-			<label kind="synchronisation" x="-841" y="-841">enter_station_reply_ko[id_train][next_station]?</label>
+			<label kind="synchronisation" x="-841" y="-841">enter_station_reply_ko[next_station]?</label>
 			<label kind="assignment" x="-841" y="-824">waiting_time = 0</label>
 			<nail x="-850" y="-697"/>
 			<nail x="-850" y="-901"/>
@@ -280,8 +286,8 @@ void update_train_info(){
 		<transition>
 			<source ref="id1"/>
 			<target ref="id2"/>
-			<label kind="synchronisation" x="-1504" y="-535">leave_station[current_station]?</label>
-			<label kind="assignment" x="-1479" y="-518">increase_charge(1)</label>
+			<label kind="synchronisation" x="-1521" y="-535">enter_station_reply_ko[current_station]?</label>
+			<label kind="assignment" x="-1462" y="-518">increase_charge(1)</label>
 		</transition>
 		<transition>
 			<source ref="id1"/>
@@ -299,7 +305,7 @@ void update_train_info(){
 	</template>
 	<template>
 		<name>Station</name>
-		<parameter>const int[0,2] id_station,const int max_tracks, int trains_inside</parameter>
+		<parameter>const int[0,NUM_STATIONS-1] id_station,const int max_tracks, int trains_inside</parameter>
 		<declaration>//Station variables
 int [0, NUM_TRAINS-1] temp_train;
 
@@ -337,22 +343,26 @@ bool authorization_granted(){
     return false;
 }</declaration>
 		<location id="id7" x="-2592" y="-3110">
-			<name x="-2583" y="-3102">Idle</name>
+			<name x="-2601" y="-3145">Idle</name>
 		</location>
-		<location id="id8" x="-2379" y="-2821">
-			<name x="-2490" y="-2847">Handle_Request</name>
-		</location>
-		<location id="id9" x="-2150" y="-2949">
-			<name x="-2133" y="-2957">Handle_Force_Leave</name>
+		<location id="id8" x="-2210" y="-2728">
+			<name x="-2321" y="-2754">Handle_Request</name>
 		</location>
 		<init ref="id7"/>
 		<transition>
 			<source ref="id8"/>
+			<target ref="id7"/>
+			<label kind="guard" x="-2524" y="-3060">not authorization_granted()</label>
+			<label kind="synchronisation" x="-2499" y="-3043">enter_station_reply_ko[id_station]!</label>
+			<label kind="assignment" x="-2482" y="-3026">increase_waiting_count()</label>
+		</transition>
+		<transition>
+			<source ref="id8"/>
 			<target ref="id8"/>
-			<label kind="synchronisation" x="-2465" y="-2686">exit_station[id_station]?</label>
-			<label kind="assignment" x="-2499" y="-2669">decrease_inside_count(), decrease_waiting_count()</label>
-			<nail x="-2380" y="-2686"/>
-			<nail x="-2456" y="-2686"/>
+			<label kind="synchronisation" x="-2296" y="-2593">exit_station[id_station]?</label>
+			<label kind="assignment" x="-2330" y="-2576">decrease_inside_count(), decrease_waiting_count()</label>
+			<nail x="-2211" y="-2593"/>
+			<nail x="-2287" y="-2593"/>
 		</transition>
 		<transition>
 			<source ref="id7"/>
@@ -363,36 +373,21 @@ bool authorization_granted(){
 			<nail x="-2762" y="-3059"/>
 		</transition>
 		<transition>
-			<source ref="id9"/>
-			<target ref="id7"/>
-			<label kind="synchronisation" x="-2439" y="-3246">leave_station[id_station]!</label>
-			<nail x="-2150" y="-3221"/>
-			<nail x="-2592" y="-3221"/>
-		</transition>
-		<transition>
-			<source ref="id8"/>
-			<target ref="id9"/>
-			<label kind="guard" x="-2209" y="-2821">not authorization_granted()</label>
-			<label kind="synchronisation" x="-2277" y="-2804">enter_station_reply_ko[temp_train][id_station]!</label>
-			<label kind="assignment" x="-2201" y="-2787">increase_waiting_count()</label>
-			<nail x="-2150" y="-2821"/>
-		</transition>
-		<transition>
 			<source ref="id8"/>
 			<target ref="id7"/>
 			<label kind="guard" x="-2490" y="-3170">authorization_granted()</label>
 			<label kind="synchronisation" x="-2541" y="-3136">enter_station_reply_ok[temp_train][id_station]!</label>
 			<label kind="assignment" x="-2490" y="-3153">increase_inside_count()</label>
-			<nail x="-2379" y="-2932"/>
-			<nail x="-2379" y="-3110"/>
+			<nail x="-2210" y="-2958"/>
+			<nail x="-2210" y="-3111"/>
 		</transition>
 		<transition>
 			<source ref="id7"/>
 			<target ref="id8"/>
-			<label kind="select" x="-2796" y="-2830">id_train: int[0, NUM_TRAINS-1]</label>
-			<label kind="synchronisation" x="-2839" y="-2813">enter_station_request[id_train][id_station]?</label>
-			<label kind="assignment" x="-2771" y="-2796">temp_train = id_train</label>
-			<nail x="-2592" y="-2821"/>
+			<label kind="select" x="-2788" y="-2788">id_train: int[0, NUM_TRAINS-1]</label>
+			<label kind="synchronisation" x="-2864" y="-2771">enter_station_request[id_train][id_station]?</label>
+			<label kind="assignment" x="-2737" y="-2754">temp_train = id_train</label>
+			<nail x="-2592" y="-2728"/>
 		</transition>
 	</template>
 	<system>
