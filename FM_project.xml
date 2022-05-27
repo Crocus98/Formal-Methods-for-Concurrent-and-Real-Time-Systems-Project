@@ -174,6 +174,12 @@ void decrease_inside_count(){
     TRAINS_INSIDE[current_station] -= 1;
 }
 
+void decrease_waiting_count (){
+    if(FORCED_TO_LEAVE_COUNT[current_station] &gt; 0){
+        FORCED_TO_LEAVE_COUNT[current_station] -= 1;
+    }
+}
+
 void update_train_info(){
     int next_index = 0;
     for (current_index : int[0, NUM_MAX_STATIONS_LINE-1])
@@ -300,22 +306,23 @@ void update_train_info(){
 			<target ref="id3"/>
 			<label kind="guard" x="-1530" y="-340">charge == max_charge || mov_time &gt;=max_time_before_leaving()</label>
 			<label kind="synchronisation" x="-1530" y="-323">exit_station[current_station]!</label>
-			<label kind="assignment" x="-1530" y="-306">decrease_inside_count(), temp_mov_time=0</label>
+			<label kind="assignment" x="-1530" y="-306">decrease_inside_count(), decrease_waiting_count(), temp_mov_time=0</label>
 			<nail x="-1538" y="-340"/>
 			<nail x="-926" y="-340"/>
 		</transition>
 		<transition>
 			<source ref="id2"/>
 			<target ref="id3"/>
-			<label kind="guard" x="-1241" y="-552">have_to_leave()</label>
-			<label kind="synchronisation" x="-1241" y="-535">exit_station[current_station]!</label>
-			<label kind="assignment" x="-1241" y="-518">decrease_inside_count(), temp_mov_time=0</label>
+			<label kind="guard" x="-1224" y="-578">have_to_leave()</label>
+			<label kind="synchronisation" x="-1224" y="-561">exit_station[current_station]!</label>
+			<label kind="assignment" x="-1224" y="-544">decrease_inside_count(), temp_mov_time=0,
+decrease_waiting_count()</label>
 		</transition>
 		<transition>
 			<source ref="id1"/>
 			<target ref="id2"/>
 			<label kind="synchronisation" x="-1521" y="-535">enter_station_reply_ko[current_station]?</label>
-			<label kind="assignment" x="-1462" y="-518">increase_charge(1)</label>
+			<label kind="assignment" x="-1521" y="-518">increase_charge(1)</label>
 		</transition>
 		<transition>
 			<source ref="id1"/>
@@ -341,13 +348,11 @@ int [0,NUM_TRAINS]temp_train = 0;
 //Station functions
 void increase_waiting_count(){
     FORCED_TO_LEAVE_COUNT[id_station] += (TRAINS_INSIDE[id_station] + temp_train - MAX_TRACKS[id_station]);
-    temp_train = 0;
-}
-
-void decrease_waiting_count (){
-    if(FORCED_TO_LEAVE_COUNT[id_station] &gt; 0){
-        FORCED_TO_LEAVE_COUNT[id_station] -= 1;
+    if(FORCED_TO_LEAVE_COUNT[id_station] &lt; 0)
+    {
+        FORCED_TO_LEAVE_COUNT[id_station] = 0;
     }
+    temp_train = 0;
 }
 
 bool trains_inside_null (){
@@ -386,16 +391,14 @@ void increase_temp_train(){
 		<transition>
 			<source ref="id8"/>
 			<target ref="id8"/>
-			<label kind="synchronisation" x="-2295" y="-2584">exit_station[id_station]?</label>
-			<label kind="assignment" x="-2295" y="-2567">decrease_waiting_count()</label>
+			<label kind="synchronisation" x="-2320" y="-2584">exit_station[id_station]?</label>
 			<nail x="-2210" y="-2584"/>
 			<nail x="-2286" y="-2584"/>
 		</transition>
 		<transition>
 			<source ref="id7"/>
 			<target ref="id7"/>
-			<label kind="synchronisation" x="-2932" y="-3111">exit_station[id_station]?</label>
-			<label kind="assignment" x="-2932" y="-3094">decrease_waiting_count()</label>
+			<label kind="synchronisation" x="-2915" y="-3111">exit_station[id_station]?</label>
 			<nail x="-2762" y="-3110"/>
 			<nail x="-2762" y="-3059"/>
 		</transition>
