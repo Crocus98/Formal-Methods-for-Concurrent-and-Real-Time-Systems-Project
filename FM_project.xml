@@ -75,29 +75,14 @@ const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,18,-1,-1,-1},
                                                      {-1,-1,14,0,-1},
                                                      {-1,-1,18,-1,0}};
 
-//Channels
-chan enter_station_request[NUM_TRAINS][NUM_STATIONS];
-urgent chan enter_station_reply_ok[NUM_TRAINS][NUM_STATIONS]; //broadcast
-urgent chan enter_station_reply_ko[NUM_TRAINS][NUM_STATIONS]; //broadcast
-chan exit_station[NUM_STATIONS];
-urgent broadcast chan leave_station[NUM_STATIONS];
 */
-
-
 
 //Channels
 broadcast chan enter_station_request[NUM_STATIONS];
-broadcast chan enter_station_reply_ok[NUM_STATIONS]; //broadcast
-broadcast chan enter_station_reply_ko[NUM_STATIONS]; //broadcast
+urgent broadcast chan enter_station_reply_ok[NUM_STATIONS]; //broadcast
+urgent broadcast chan enter_station_reply_ko[NUM_STATIONS]; //broadcast
 chan exit_station[NUM_STATIONS];
 
-//Global functions
-bool authorization_granted(int station){
-    if(TRAINS_INSIDE[station] &lt; MAX_TRACKS[station]){
-        return true;
-    }
-    return false;
-}
 </declaration>
 	<template>
 		<name x="5" y="5">Train</name>
@@ -186,6 +171,13 @@ void increase_temp_train(){
     TEMP_TRAINS[next_station] +=1;
 }
 
+bool authorization_granted(){
+    if(TRAINS_INSIDE[next_station] &lt; MAX_TRACKS[next_station]){
+        return true;
+    }
+    return false;
+}
+
 void update_train_info(){
     int next_index = 0;
     for (current_index : int[0, NUM_MAX_STATIONS_LINE-1])
@@ -241,6 +233,7 @@ void update_train_info(){
 		</location>
 		<location id="id2" x="-1266" y="-501">
 			<name x="-1258" y="-493">Forced_exit</name>
+			<label kind="invariant" x="-1258" y="-476">waiting_time &lt;=1</label>
 		</location>
 		<location id="id3" x="-926" y="-501">
 			<name x="-986" y="-501">Moving</name>
@@ -260,8 +253,8 @@ void update_train_info(){
 		<transition>
 			<source ref="id4"/>
 			<target ref="id4"/>
-			<label kind="guard" x="-765" y="-680">not authorization_granted(next_station)</label>
-			<label kind="synchronisation" x="-765" y="-663">enter_station_reply_ok[next_station]?</label>
+			<label kind="guard" x="-773" y="-680">not authorization_granted()</label>
+			<label kind="synchronisation" x="-773" y="-663">enter_station_reply_ok[next_station]?</label>
 			<nail x="-799" y="-620"/>
 			<nail x="-773" y="-671"/>
 		</transition>
@@ -296,16 +289,16 @@ void update_train_info(){
 		<transition>
 			<source ref="id4"/>
 			<target ref="id0"/>
-			<label kind="guard" x="-1487" y="-756">authorization_granted(next_station)</label>
+			<label kind="guard" x="-1487" y="-756">authorization_granted()</label>
 			<label kind="synchronisation" x="-1487" y="-739">enter_station_reply_ok[next_station]?</label>
-			<label kind="assignment" x="-1487" y="-722">mov_time = 0, waiting_time = 0, increase_inside_count(),update_train_info()</label>
+			<label kind="assignment" x="-1487" y="-722">mov_time = 0, waiting_time = 0, increase_inside_count(), update_train_info()</label>
 		</transition>
 		<transition>
 			<source ref="id3"/>
 			<target ref="id4"/>
 			<label kind="guard" x="-1394" y="-654">temp_mov_time &gt;= compute_minimal_travel_time()</label>
 			<label kind="synchronisation" x="-1394" y="-637">enter_station_request[next_station]!</label>
-			<label kind="assignment" x="-1394" y="-620">decrease_charge(compute_minimal_travel_time()), increase_temp_train()</label>
+			<label kind="assignment" x="-1394" y="-620">decrease_charge(compute_minimal_travel_time()), increase_temp_train(), waiting_time = 0</label>
 		</transition>
 		<transition>
 			<source ref="id1"/>
@@ -327,8 +320,8 @@ decrease_waiting_count()</label>
 		<transition>
 			<source ref="id1"/>
 			<target ref="id2"/>
-			<label kind="synchronisation" x="-1521" y="-535">enter_station_reply_ko[current_station]?</label>
-			<label kind="assignment" x="-1521" y="-518">increase_charge(1)</label>
+			<label kind="synchronisation" x="-1521" y="-544">enter_station_reply_ko[current_station]?</label>
+			<label kind="assignment" x="-1521" y="-527">increase_charge(1), waiting_time = 0</label>
 		</transition>
 		<transition>
 			<source ref="id1"/>
@@ -363,6 +356,13 @@ bool trains_inside_null (){
     }
     return false;
 }
+
+bool authorization_granted(){
+    if(TRAINS_INSIDE[id_station] &lt; MAX_TRACKS[id_station]){
+        return true;
+    }
+    return false;
+}
 </declaration>
 		<location id="id7" x="-2592" y="-3110">
 			<name x="-2601" y="-3145">Idle</name>
@@ -381,7 +381,7 @@ bool trains_inside_null (){
 		<transition>
 			<source ref="id8"/>
 			<target ref="id7"/>
-			<label kind="guard" x="-2507" y="-3043">not authorization_granted(id_station)</label>
+			<label kind="guard" x="-2507" y="-3043">not authorization_granted()</label>
 			<label kind="synchronisation" x="-2490" y="-3026">enter_station_reply_ko[id_station]!</label>
 			<label kind="assignment" x="-2465" y="-3009">increase_waiting_count()</label>
 		</transition>
@@ -402,7 +402,7 @@ bool trains_inside_null (){
 		<transition>
 			<source ref="id8"/>
 			<target ref="id7"/>
-			<label kind="guard" x="-2490" y="-3170">authorization_granted(id_station)</label>
+			<label kind="guard" x="-2490" y="-3170">authorization_granted()</label>
 			<label kind="synchronisation" x="-2490" y="-3153">enter_station_reply_ok[id_station]!</label>
 			<label kind="assignment" x="-2490" y="-3136">increase_waiting_count()</label>
 			<nail x="-2210" y="-2958"/>
