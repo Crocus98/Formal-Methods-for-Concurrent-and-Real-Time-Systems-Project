@@ -56,7 +56,7 @@ const int NEXT_STATION[NUM_TRAINS] = {1,2,1,2,2,2,1}; //must be inside the line
 //Station settings
 const int NUM_STATIONS = 5;
 const int SPARE_TIME = 6;
-const int MAX_TRACKS[NUM_STATIONS] = {4,2,5,3,4};
+const int MAX_TRACKS[NUM_STATIONS] = {3,2,2,2,3}; //{4,2,2,3,4};
 const int PASSENGERS_TIME = 3;
 const int REQUEST_DELAY = 2;
 int TRAINS_INSIDE[NUM_STATIONS] = {3,0,0,2,2};
@@ -295,7 +295,7 @@ void update_train_info(){
 		</location>
 		<location id="id5" x="-756" y="-901">
 			<name x="-833" y="-935">Waiting_Request_Delay</name>
-			<label kind="invariant" x="-1003" y="-892">waiting_time &lt;= REQUEST_DELAY</label>
+			<label kind="invariant" x="-1003" y="-892">waiting_time &lt;= REQUEST_DELAY-1</label>
 		</location>
 		<location id="id6" x="-1615" y="-885">
 			<name x="-1641" y="-919">Initializer</name>
@@ -305,6 +305,7 @@ void update_train_info(){
 			<label kind="invariant" x="-1122" y="-739">waiting_time &lt;= 1</label>
 		</location>
 		<location id="id8" x="-952" y="-994">
+			<name x="-977" y="-977">ERROR</name>
 		</location>
 		<init ref="id6"/>
 		<transition>
@@ -340,23 +341,24 @@ waiting_time = 0</label>
 		<transition>
 			<source ref="id7"/>
 			<target ref="id5"/>
-			<label kind="guard" x="-1394" y="-909">not authorization_granted(next_station)</label>
-			<label kind="synchronisation" x="-1377" y="-926">enter_station_reply_ko[next_station]!</label>
-			<label kind="assignment" x="-1249" y="-892">waiting_time = 0</label>
+			<label kind="guard" x="-1394" y="-884">not authorization_granted(next_station)</label>
+			<label kind="synchronisation" x="-1377" y="-901">enter_station_reply_ko[next_station]!</label>
+			<label kind="assignment" x="-1385" y="-867">decrease_charge(1), waiting_time = 0</label>
 			<nail x="-1130" y="-901"/>
 		</transition>
 		<transition>
 			<source ref="id7"/>
 			<target ref="id0"/>
 			<label kind="guard" x="-1538" y="-697">enter_permission()</label>
-			<label kind="assignment" x="-1538" y="-680">mov_time = 0, waiting_time = 0, increase_inside_count(), 
-decrease_temp_train(), dequeue(), update_train_info()</label>
+			<label kind="assignment" x="-1538" y="-680">mov_time = 0, waiting_time = 0, decrease_charge(1), 
+increase_inside_count(), decrease_temp_train(), 
+dequeue(), update_train_info()</label>
 		</transition>
 		<transition>
 			<source ref="id4"/>
 			<target ref="id7"/>
 			<label kind="synchronisation" x="-1062" y="-697">enter_station_reply_ok[next_station]?</label>
-			<label kind="assignment" x="-926" y="-680">waiting_time = 0</label>
+			<label kind="assignment" x="-1062" y="-680">decrease_charge(1), waiting_time = 0</label>
 		</transition>
 		<transition>
 			<source ref="id6"/>
@@ -374,16 +376,16 @@ decrease_temp_train(), dequeue(), update_train_info()</label>
 		<transition>
 			<source ref="id5"/>
 			<target ref="id4"/>
-			<label kind="guard" x="-1011" y="-833">waiting_time &gt;= REQUEST_DELAY</label>
-			<label kind="synchronisation" x="-1011" y="-816">enter_station_request[next_station]!</label>
-			<label kind="assignment" x="-1011" y="-799">decrease_charge(REQUEST_DELAY),
+			<label kind="guard" x="-1020" y="-833">waiting_time &gt;= REQUEST_DELAY-1</label>
+			<label kind="synchronisation" x="-1020" y="-816">enter_station_request[next_station]!</label>
+			<label kind="assignment" x="-1020" y="-799">decrease_charge(REQUEST_DELAY-1),
 waiting_time = 0</label>
 		</transition>
 		<transition>
 			<source ref="id4"/>
 			<target ref="id5"/>
 			<label kind="synchronisation" x="-671" y="-841">enter_station_reply_ko[next_station]?</label>
-			<label kind="assignment" x="-671" y="-824">waiting_time = 0</label>
+			<label kind="assignment" x="-671" y="-824">decrease_charge(1), waiting_time = 0</label>
 			<nail x="-680" y="-739"/>
 			<nail x="-680" y="-901"/>
 		</transition>
@@ -438,7 +440,7 @@ waiting_time = 0</label>
 		<parameter>const int[0,NUM_STATIONS-1] id_station</parameter>
 		<declaration>//Station functions
 void increase_waiting_count(){
-    FORCED_TO_LEAVE_COUNT[id_station] += (TRAINS_INSIDE[id_station] + TEMP_TRAINS[id_station] - MAX_TRACKS[id_station]);
+    FORCED_TO_LEAVE_COUNT[id_station] = (TRAINS_INSIDE[id_station] + TEMP_TRAINS[id_station] - MAX_TRACKS[id_station]); //+
     if(FORCED_TO_LEAVE_COUNT[id_station] &lt; 0)
     {
         FORCED_TO_LEAVE_COUNT[id_station] = 0;
@@ -543,7 +545,83 @@ system train_0, train_1, train_2, train_3, train_4, train_5, train_6, station_0,
 </system>
 	<queries>
 		<query>
-			<formula></formula>
+			<formula>A&lt;&gt; ( train_1.Charging imply !train_1.ERROR )</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; ( TRAINS_INSIDE[station_4.id_station] &lt;= MAX_TRACKS[station_4.id_station] )</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; ( TRAINS_INSIDE[station_3.id_station] &lt;= MAX_TRACKS[station_3.id_station] )</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; ( TRAINS_INSIDE[station_2.id_station] &lt;= MAX_TRACKS[station_2.id_station] )</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; ( TRAINS_INSIDE[station_1.id_station] &lt;= MAX_TRACKS[station_1.id_station] )</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; ( TRAINS_INSIDE[station_0.id_station] &lt;= MAX_TRACKS[station_0.id_station] )</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; ( train_6.mov_time &lt;= MAX_DELAYS[train_6.current_station][train_6.next_station] )</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; ( train_5.mov_time &lt;= MAX_DELAYS[train_5.current_station][train_5.next_station] )</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; ( train_4.mov_time &lt;= MAX_DELAYS[train_4.current_station][train_4.next_station] )</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; ( train_3.mov_time &lt;= MAX_DELAYS[train_3.current_station][train_3.next_station] )</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; ( train_2.mov_time &lt;= MAX_DELAYS[train_2.current_station][train_2.next_station] )</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; ( train_1.mov_time &lt;= MAX_DELAYS[train_1.current_station][train_1.next_station] )</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; ( train_0.mov_time &lt;= MAX_DELAYS[train_0.current_station][train_0.next_station] )</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; ( train_6.charge &gt; 0 )</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; ( train_5.charge &gt; 0 )</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; ( train_4.charge &gt; 0 )</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; ( train_3.charge &gt; 0 )</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; ( train_2.charge &gt; 0 )</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; ( train_1.charge &gt; 0 )</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; ( train_0.charge &gt; 0 )</formula>
 			<comment></comment>
 		</query>
 	</queries>
