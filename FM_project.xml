@@ -21,6 +21,7 @@ const int PASSENGERS_TIME = 3;
 const int REQUEST_DELAY = 2;
 int TRAINS_INSIDE[NUM_STATIONS] = {1,1,1};
 int FORCED_TO_LEAVE_COUNT [NUM_STATIONS] = {0,0,0};
+int [0, NUM_TRAINS] TEMP_TRAINS [NUM_STATIONS] = {0,0,0};
 
 //Railways settins
 const int NUM_LINES = 2;
@@ -55,8 +56,9 @@ const int SPARE_TIME = 6;
 const int MAX_TRACKS[NUM_STATIONS] = {4,3,5,3,4};
 const int PASSENGERS_TIME = 3;
 const int REQUEST_DELAY = 2;
-const int INITIAL_TRAINS_INSIDE[NUM_STATIONS] = {3,0,0,2,2};
+int TRAINS_INSIDE[NUM_STATIONS] = {3,0,0,2,2};
 int FORCED_TO_LEAVE_COUNT [NUM_STATIONS] = {0,0,0,0,0};
+int [0, NUM_TRAINS] TEMP_TRAINS [NUM_STATIONS] = {0,0,0,0,0};
 
 //Railways settins
 const int NUM_LINES = 3;
@@ -180,6 +182,10 @@ void decrease_waiting_count (){
     }
 }
 
+void increase_temp_train(){
+    TEMP_TRAINS[next_station] +=1;
+}
+
 void update_train_info(){
     int next_index = 0;
     for (current_index : int[0, NUM_MAX_STATIONS_LINE-1])
@@ -297,9 +303,9 @@ void update_train_info(){
 		<transition>
 			<source ref="id3"/>
 			<target ref="id4"/>
-			<label kind="guard" x="-1249" y="-654">temp_mov_time &gt;= compute_minimal_travel_time()</label>
-			<label kind="synchronisation" x="-1249" y="-637">enter_station_request[next_station]!</label>
-			<label kind="assignment" x="-1249" y="-620">decrease_charge(compute_minimal_travel_time())</label>
+			<label kind="guard" x="-1394" y="-654">temp_mov_time &gt;= compute_minimal_travel_time()</label>
+			<label kind="synchronisation" x="-1394" y="-637">enter_station_request[next_station]!</label>
+			<label kind="assignment" x="-1394" y="-620">decrease_charge(compute_minimal_travel_time()), increase_temp_train()</label>
 		</transition>
 		<transition>
 			<source ref="id1"/>
@@ -341,18 +347,14 @@ decrease_waiting_count()</label>
 	<template>
 		<name>Station</name>
 		<parameter>const int[0,NUM_STATIONS-1] id_station</parameter>
-		<declaration>//Station variables
-int [0,NUM_TRAINS]temp_train = 0;
-
-
-//Station functions
+		<declaration>//Station functions
 void increase_waiting_count(){
-    FORCED_TO_LEAVE_COUNT[id_station] += (TRAINS_INSIDE[id_station] + temp_train - MAX_TRACKS[id_station]);
+    FORCED_TO_LEAVE_COUNT[id_station] += (TRAINS_INSIDE[id_station] + TEMP_TRAINS[id_station] - MAX_TRACKS[id_station]);
     if(FORCED_TO_LEAVE_COUNT[id_station] &lt; 0)
     {
         FORCED_TO_LEAVE_COUNT[id_station] = 0;
     }
-    temp_train = 0;
+    TEMP_TRAINS[id_station] = 0;
 }
 
 bool trains_inside_null (){
@@ -360,10 +362,6 @@ bool trains_inside_null (){
         return true;
     }
     return false;
-}
-
-void increase_temp_train(){
-    temp_train +=1;
 }
 </declaration>
 		<location id="id7" x="-2592" y="-3110">
@@ -377,7 +375,6 @@ void increase_temp_train(){
 			<source ref="id8"/>
 			<target ref="id8"/>
 			<label kind="synchronisation" x="-2031" y="-2788">enter_station_request[id_station]?</label>
-			<label kind="assignment" x="-2031" y="-2771">increase_temp_train()</label>
 			<nail x="-2040" y="-2728"/>
 			<nail x="-2040" y="-2813"/>
 		</transition>
@@ -415,7 +412,6 @@ void increase_temp_train(){
 			<source ref="id7"/>
 			<target ref="id8"/>
 			<label kind="synchronisation" x="-2813" y="-2745">enter_station_request[id_station]?</label>
-			<label kind="assignment" x="-2737" y="-2728">increase_temp_train()</label>
 			<nail x="-2592" y="-2728"/>
 		</transition>
 	</template>
