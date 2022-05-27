@@ -545,7 +545,31 @@ system train_0, train_1, train_2, train_3, train_4, train_5, train_6, station_0,
 </system>
 	<queries>
 		<query>
+			<formula>A&lt;&gt; ( train_6.Charging imply !train_6.ERROR )</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; ( train_5.Charging imply !train_5.ERROR )</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; ( train_4.Charging imply !train_4.ERROR )</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; ( train_3.Charging imply !train_3.ERROR )</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; ( train_2.Charging imply !train_2.ERROR )</formula>
+			<comment></comment>
+		</query>
+		<query>
 			<formula>A&lt;&gt; ( train_1.Charging imply !train_1.ERROR )</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; ( train_0.Charging imply !train_0.ERROR )</formula>
 			<comment></comment>
 		</query>
 		<query>
