@@ -87,9 +87,9 @@ const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,28,-1,-1,-1},
 
 
 //Channels
-broadcast chan enter_station_request[NUM_STATIONS];
-urgent broadcast chan enter_station_reply_ok[NUM_STATIONS]; //broadcast
-urgent broadcast chan enter_station_reply_ko[NUM_STATIONS]; //broadcast
+broadcast chan enter_station_request[NUM_STATIONS][NUM_TRAINS];
+chan enter_station_reply_ok[NUM_STATIONS][NUM_TRAINS]; //broadcast
+chan enter_station_reply_ko[NUM_STATIONS][NUM_TRAINS]; //broadcast
 chan exit_station[NUM_STATIONS];
 
 //Global functions
@@ -200,6 +200,18 @@ void enqueue(){
     }
 }
 
+void enqueue_with_priority(){
+    int temp = WAITING_QUEUE[next_station][0];
+    WAITING_QUEUE[next_station][0] = id_train;
+    for(i : int[1, NUM_TRAINS-1]){
+        if(temp == -1){
+            return;
+        }
+        WAITING_QUEUE[next_station][i] = temp;
+        temp = WAITING_QUEUE[next_station][i];
+    }
+}
+
 void dequeue(){
     for(i : int[0, NUM_TRAINS-2]){
         if(WAITING_QUEUE[next_station][i+1]!=-1){
@@ -216,6 +228,13 @@ void dequeue(){
 
 bool enter_permission(){
     if(WAITING_QUEUE[next_station][0]==id_train &amp;&amp; authorization_granted(next_station)){
+        return true;
+    }
+    return false;
+}
+
+bool channel_empty(){
+    if(WAITING_QUEUE[next_station][0]==id_train){
         return true;
     }
     return false;
@@ -273,9 +292,9 @@ void update_train_info(){
     }
     return;
 }</declaration>
-		<location id="id0" x="-1615" y="-697">
-			<name x="-1692" y="-740">Charging</name>
-			<label kind="invariant" x="-1938" y="-705">waiting_time &lt;= get_minimal_recharge_time()</label>
+		<location id="id0" x="-1615" y="-842">
+			<name x="-1692" y="-885">Charging</name>
+			<label kind="invariant" x="-1938" y="-850">waiting_time &lt;= get_minimal_recharge_time()</label>
 		</location>
 		<location id="id1" x="-1615" y="-502">
 			<name x="-1709" y="-502">Overcharging</name>
@@ -289,81 +308,76 @@ void update_train_info(){
 			<name x="-816" y="-501">Moving</name>
 			<label kind="invariant" x="-739" y="-510">temp_mov_time &lt;= compute_minimal_travel_time()</label>
 		</location>
-		<location id="id4" x="-756" y="-697">
-			<name x="-748" y="-688">Waiting</name>
-			<label kind="invariant" x="-748" y="-671">waiting_time &lt;= 1</label>
+		<location id="id4" x="-756" y="-842">
+			<name x="-739" y="-842">Waiting</name>
 		</location>
-		<location id="id5" x="-756" y="-901">
-			<name x="-833" y="-935">Waiting_Request_Delay</name>
-			<label kind="invariant" x="-1003" y="-892">waiting_time &lt;= REQUEST_DELAY-1</label>
+		<location id="id5" x="-756" y="-1046">
+			<name x="-833" y="-1080">Waiting_Request_Delay</name>
+			<label kind="invariant" x="-1020" y="-1054">waiting_time &lt;= REQUEST_DELAY-1</label>
 		</location>
-		<location id="id6" x="-1615" y="-885">
-			<name x="-1641" y="-919">Initializer</name>
+		<location id="id6" x="-1615" y="-1030">
+			<name x="-1641" y="-1064">Initializer</name>
 		</location>
-		<location id="id7" x="-1130" y="-697">
-			<name x="-1122" y="-722">Check_Queue</name>
-			<label kind="invariant" x="-1122" y="-739">waiting_time &lt;= 1</label>
+		<location id="id7" x="-952" y="-1139">
+			<name x="-977" y="-1122">ERROR</name>
 		</location>
-		<location id="id8" x="-952" y="-994">
-			<name x="-977" y="-977">ERROR</name>
+		<location id="id8" x="-756" y="-671">
+			<name x="-739" y="-680">sending_request</name>
+			<label kind="invariant" x="-739" y="-663">waiting_time &lt;= 1</label>
 		</location>
 		<init ref="id6"/>
 		<transition>
-			<source ref="id4"/>
+			<source ref="id7"/>
 			<target ref="id4"/>
-			<label kind="guard" x="-578" y="-705">waiting_time &gt;= 1</label>
-			<label kind="synchronisation" x="-578" y="-688">enter_station_request[next_station]!</label>
-			<label kind="assignment" x="-578" y="-671">waiting_time = 0, decrease_charge(1)</label>
-			<nail x="-586" y="-697"/>
-			<nail x="-586" y="-637"/>
+			<label kind="guard" x="-1453" y="-1122">charge &lt;= 0 || mov_time &gt; get_maximal_delay()</label>
+			<nail x="-1122" y="-1139"/>
+			<nail x="-1122" y="-901"/>
 		</transition>
 		<transition>
-			<source ref="id7"/>
+			<source ref="id8"/>
+			<target ref="id7"/>
+			<label kind="guard" x="-1453" y="-1139">charge &lt;= 0 || mov_time &gt; get_maximal_delay()</label>
+			<nail x="-1122" y="-901"/>
+			<nail x="-1122" y="-1139"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="-1555" y="-842">enter_station_reply_ok[next_station][id_train]?</label>
+			<label kind="assignment" x="-1555" y="-825">mov_time = 0, waiting_time = 0, decrease_charge(1), increase_inside_count(), 
+decrease_temp_train(), dequeue(), update_train_info()</label>
+		</transition>
+		<transition>
+			<source ref="id8"/>
 			<target ref="id8"/>
-			<label kind="guard" x="-1402" y="-1020">charge &lt;= 0 || mov_time &gt; get_maximal_delay()</label>
-			<nail x="-1130" y="-994"/>
+			<label kind="guard" x="-1037" y="-705">not channel_empty()</label>
+			<label kind="assignment" x="-1156" y="-688">waiting_time = 0, decrease_charge(1)</label>
+			<nail x="-892" y="-705"/>
+			<nail x="-892" y="-663"/>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id4"/>
+			<label kind="guard" x="-748" y="-773">channel_empty()</label>
+			<label kind="synchronisation" x="-748" y="-756">enter_station_request[next_station][id_train]!</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id8"/>
+			<label kind="guard" x="-748" y="-612">temp_mov_time &gt;= compute_minimal_travel_time()</label>
+			<label kind="assignment" x="-748" y="-595">decrease_charge(compute_minimal_travel_time()), 
+increase_temp_train(), enqueue(), waiting_time = 0</label>
 		</transition>
 		<transition>
 			<source ref="id5"/>
-			<target ref="id8"/>
-			<label kind="guard" x="-918" y="-1020">charge &lt;= 0 || mov_time &gt; get_maximal_delay()</label>
-			<nail x="-756" y="-994"/>
-		</transition>
-		<transition>
-			<source ref="id7"/>
 			<target ref="id7"/>
-			<label kind="guard" x="-1402" y="-807">not_next()</label>
-			<label kind="assignment" x="-1402" y="-790">decrease_charge(1),
-waiting_time = 0</label>
-			<nail x="-1283" y="-748"/>
-			<nail x="-1224" y="-807"/>
-		</transition>
-		<transition>
-			<source ref="id7"/>
-			<target ref="id5"/>
-			<label kind="guard" x="-1394" y="-884">not authorization_granted(next_station)</label>
-			<label kind="synchronisation" x="-1377" y="-901">enter_station_reply_ko[next_station]!</label>
-			<label kind="assignment" x="-1385" y="-867">decrease_charge(1), waiting_time = 0</label>
-			<nail x="-1130" y="-901"/>
-		</transition>
-		<transition>
-			<source ref="id7"/>
-			<target ref="id0"/>
-			<label kind="guard" x="-1538" y="-697">enter_permission()</label>
-			<label kind="assignment" x="-1538" y="-680">mov_time = 0, waiting_time = 0, decrease_charge(1), 
-increase_inside_count(), decrease_temp_train(), 
-dequeue(), update_train_info()</label>
-		</transition>
-		<transition>
-			<source ref="id4"/>
-			<target ref="id7"/>
-			<label kind="synchronisation" x="-1062" y="-697">enter_station_reply_ok[next_station]?</label>
-			<label kind="assignment" x="-1062" y="-680">decrease_charge(1), waiting_time = 0</label>
+			<label kind="guard" x="-748" y="-1139">charge &lt;= 0 || mov_time &gt; get_maximal_delay()</label>
+			<nail x="-756" y="-1139"/>
 		</transition>
 		<transition>
 			<source ref="id6"/>
 			<target ref="id0"/>
-			<label kind="assignment" x="-1810" y="-816">waiting_time=0, mov_time=0</label>
+			<label kind="assignment" x="-1810" y="-961">waiting_time=0, mov_time=0</label>
 		</transition>
 		<transition>
 			<source ref="id2"/>
@@ -376,26 +390,19 @@ dequeue(), update_train_info()</label>
 		<transition>
 			<source ref="id5"/>
 			<target ref="id4"/>
-			<label kind="guard" x="-1020" y="-833">waiting_time &gt;= REQUEST_DELAY-1</label>
-			<label kind="synchronisation" x="-1020" y="-816">enter_station_request[next_station]!</label>
-			<label kind="assignment" x="-1020" y="-799">decrease_charge(REQUEST_DELAY-1),
+			<label kind="guard" x="-1147" y="-986">waiting_time &gt;= REQUEST_DELAY-1 &amp;&amp; channel_empty()</label>
+			<label kind="synchronisation" x="-1147" y="-969">enter_station_request[next_station][id_train]!</label>
+			<label kind="assignment" x="-1147" y="-952">decrease_charge(REQUEST_DELAY-1),
 waiting_time = 0</label>
 		</transition>
 		<transition>
 			<source ref="id4"/>
 			<target ref="id5"/>
-			<label kind="synchronisation" x="-671" y="-841">enter_station_reply_ko[next_station]?</label>
-			<label kind="assignment" x="-671" y="-824">decrease_charge(1), waiting_time = 0</label>
-			<nail x="-680" y="-739"/>
-			<nail x="-680" y="-901"/>
-		</transition>
-		<transition>
-			<source ref="id3"/>
-			<target ref="id4"/>
-			<label kind="guard" x="-748" y="-612">temp_mov_time &gt;= compute_minimal_travel_time()</label>
-			<label kind="synchronisation" x="-748" y="-595">enter_station_request[next_station]!</label>
-			<label kind="assignment" x="-748" y="-578">decrease_charge(compute_minimal_travel_time()), 
-increase_temp_train(), enqueue(), waiting_time = 0</label>
+			<label kind="synchronisation" x="-671" y="-986">enter_station_reply_ko[next_station][id_train]?</label>
+			<label kind="assignment" x="-671" y="-969">decrease_charge(1), waiting_time = 0,
+dequeue(), enqueue_with_priority()</label>
+			<nail x="-680" y="-884"/>
+			<nail x="-680" y="-1046"/>
 		</transition>
 		<transition>
 			<source ref="id1"/>
@@ -417,7 +424,8 @@ decrease_waiting_count()</label>
 		<transition>
 			<source ref="id1"/>
 			<target ref="id2"/>
-			<label kind="synchronisation" x="-1564" y="-544">enter_station_reply_ko[current_station]?</label>
+			<label kind="select" x="-1564" y="-561">temp_train:int[0,NUM_TRAINS-1]</label>
+			<label kind="synchronisation" x="-1564" y="-544">enter_station_request[current_station][temp_train]?</label>
 			<label kind="assignment" x="-1564" y="-527">increase_charge(1), waiting_time = 0</label>
 		</transition>
 		<transition>
@@ -431,7 +439,7 @@ decrease_waiting_count()</label>
 		<transition>
 			<source ref="id0"/>
 			<target ref="id1"/>
-			<label kind="assignment" x="-1938" y="-637">increase_charge(get_minimal_recharge_time()), 
+			<label kind="assignment" x="-1938" y="-697">increase_charge(get_minimal_recharge_time()), 
 waiting_time = 0</label>
 		</transition>
 	</template>
@@ -465,16 +473,9 @@ bool trains_inside_null (){
 		<init ref="id9"/>
 		<transition>
 			<source ref="id10"/>
-			<target ref="id10"/>
-			<label kind="synchronisation" x="-2031" y="-2788">enter_station_request[id_station]?</label>
-			<nail x="-2040" y="-2728"/>
-			<nail x="-2040" y="-2813"/>
-		</transition>
-		<transition>
-			<source ref="id10"/>
 			<target ref="id9"/>
 			<label kind="guard" x="-2507" y="-3043">not authorization_granted(id_station)</label>
-			<label kind="synchronisation" x="-2490" y="-3026">enter_station_reply_ko[id_station]!</label>
+			<label kind="synchronisation" x="-2490" y="-3026">enter_station_reply_ko[id_station][WAITING_QUEUE[id_station][0]]!</label>
 			<label kind="assignment" x="-2465" y="-3009">increase_waiting_count()</label>
 		</transition>
 		<transition>
@@ -495,7 +496,7 @@ bool trains_inside_null (){
 			<source ref="id10"/>
 			<target ref="id9"/>
 			<label kind="guard" x="-2490" y="-3170">authorization_granted(id_station)</label>
-			<label kind="synchronisation" x="-2490" y="-3153">enter_station_reply_ok[id_station]!</label>
+			<label kind="synchronisation" x="-2490" y="-3153">enter_station_reply_ok[id_station][WAITING_QUEUE[id_station][0]]!</label>
 			<label kind="assignment" x="-2490" y="-3136">increase_waiting_count()</label>
 			<nail x="-2210" y="-2958"/>
 			<nail x="-2210" y="-3111"/>
@@ -503,7 +504,8 @@ bool trains_inside_null (){
 		<transition>
 			<source ref="id9"/>
 			<target ref="id10"/>
-			<label kind="synchronisation" x="-2822" y="-2745">enter_station_request[id_station]?</label>
+			<label kind="guard" x="-2839" y="-2796">WAITING_QUEUE[id_station][0] &gt;= 0</label>
+			<label kind="synchronisation" x="-3043" y="-2779">enter_station_request[id_station][WAITING_QUEUE[id_station][0]]?</label>
 			<nail x="-2592" y="-2728"/>
 		</transition>
 	</template>
@@ -545,31 +547,7 @@ system train_0, train_1, train_2, train_3, train_4, train_5, train_6, station_0,
 </system>
 	<queries>
 		<query>
-			<formula>A&lt;&gt; ( train_6.Charging imply !train_6.ERROR )</formula>
-			<comment></comment>
-		</query>
-		<query>
-			<formula>A&lt;&gt; ( train_5.Charging imply !train_5.ERROR )</formula>
-			<comment></comment>
-		</query>
-		<query>
-			<formula>A&lt;&gt; ( train_4.Charging imply !train_4.ERROR )</formula>
-			<comment></comment>
-		</query>
-		<query>
-			<formula>A&lt;&gt; ( train_3.Charging imply !train_3.ERROR )</formula>
-			<comment></comment>
-		</query>
-		<query>
-			<formula>A&lt;&gt; ( train_2.Charging imply !train_2.ERROR )</formula>
-			<comment></comment>
-		</query>
-		<query>
 			<formula>A&lt;&gt; ( train_1.Charging imply !train_1.ERROR )</formula>
-			<comment></comment>
-		</query>
-		<query>
-			<formula>A&lt;&gt; ( train_0.Charging imply !train_0.ERROR )</formula>
 			<comment></comment>
 		</query>
 		<query>
