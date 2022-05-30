@@ -186,6 +186,20 @@ bool enter_permission(){
     return false;
 }
 
+void dequeue(){
+    for(i : int[0, NUM_TRAINS-2]){
+        if(ENTERING_QUEUE[next_station][i+1]!=-1){
+            ENTERING_QUEUE[next_station][i] = ENTERING_QUEUE[next_station][i+1];
+            if(i+1 == NUM_TRAINS-1){
+                ENTERING_QUEUE[next_station][i+1] = -1;
+            }
+        }
+        else{
+            ENTERING_QUEUE[next_station][i] = -1;
+        }
+    }
+}
+
 void update_train_info(){
     int next_index = 0;
     for (current_index : int[0, NUM_MAX_STATIONS_LINE-1])
@@ -262,10 +276,9 @@ void update_train_info(){
 		<transition>
 			<source ref="id4"/>
 			<target ref="id0"/>
-			<label kind="guard" x="-1479" y="-773">waiting_time&gt;=1</label>
 			<label kind="synchronisation" x="-1479" y="-756">enter_station_reply_ok[id_train]?</label>
 			<label kind="assignment" x="-1479" y="-739">mov_time = 0, waiting_time = 0, decrease_charge(1),
-increase_inside_count(), update_train_info()</label>
+increase_inside_count(), dequeue(), update_train_info()</label>
 		</transition>
 		<transition>
 			<source ref="id4"/>
@@ -291,9 +304,8 @@ waiting_time = 0, enqueue()</label>
 		<transition>
 			<source ref="id4"/>
 			<target ref="id5"/>
-			<label kind="guard" x="-671" y="-858">waiting_time&gt;=1</label>
 			<label kind="synchronisation" x="-671" y="-841">enter_station_reply_ko[id_train]?</label>
-			<label kind="assignment" x="-671" y="-824">waiting_time = 0</label>
+			<label kind="assignment" x="-671" y="-824">waiting_time = 0, dequeue()</label>
 			<nail x="-680" y="-739"/>
 			<nail x="-680" y="-901"/>
 		</transition>
@@ -408,18 +420,18 @@ void dequeue(){
 		<transition>
 			<source ref="id7"/>
 			<target ref="id7"/>
-			<label kind="guard" x="-3621" y="-3493">trains_entering() == true &amp;&amp; not authorization_granted(id_station) &amp;&amp; kick_trains_asap == false</label>
+			<label kind="guard" x="-3621" y="-3493">trains_entering() &amp;&amp; not authorization_granted(id_station) &amp;&amp; kick_trains_asap == false</label>
 			<label kind="synchronisation" x="-3570" y="-3476">enter_station_reply_ko[(ENTERING_QUEUE[id_station][0])]!</label>
-			<label kind="assignment" x="-3510" y="-3459">kick_trains_asap = true, dequeue()</label>
+			<label kind="assignment" x="-3510" y="-3459">kick_trains_asap = true</label>
 			<nail x="-3400" y="-3434"/>
 			<nail x="-3349" y="-3434"/>
 		</transition>
 		<transition>
 			<source ref="id7"/>
 			<target ref="id7"/>
-			<label kind="guard" x="-3187" y="-3315">trains_entering() == true &amp;&amp; authorization_granted(id_station) &amp;&amp; kick_trains_asap == false</label>
+			<label kind="guard" x="-3187" y="-3315">trains_entering() &amp;&amp; authorization_granted(id_station) &amp;&amp; kick_trains_asap == false</label>
 			<label kind="synchronisation" x="-3187" y="-3298">enter_station_reply_ok[(ENTERING_QUEUE[id_station][0])]!</label>
-			<label kind="assignment" x="-3187" y="-3281">dequeue(), check_situation()</label>
+			<label kind="assignment" x="-3187" y="-3281">check_situation()</label>
 			<nail x="-3196" y="-3306"/>
 			<nail x="-3196" y="-3255"/>
 		</transition>
