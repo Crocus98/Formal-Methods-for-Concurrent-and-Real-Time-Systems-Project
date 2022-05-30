@@ -20,9 +20,7 @@ const int MAX_TRACKS[NUM_STATIONS] = {2,2,1};
 const int PASSENGERS_TIME = 3;
 const int REQUEST_DELAY = 2;
 int TRAINS_INSIDE[NUM_STATIONS] = {1,1,1};
-int FORCED_TO_LEAVE_COUNT [NUM_STATIONS] = {0,0,0};
-int [0, NUM_TRAINS] TEMP_TRAINS [NUM_STATIONS] = {0,0,0};
-int WAITING_QUEUE [NUM_STATIONS][NUM_TRAINS] = {{-1,-1,-1},
+int ENTERING_QUEUE [NUM_STATIONS][NUM_TRAINS] = {{-1,-1,-1},
                                                 {-1,-1,-1},
                                                 {-1,-1,-1}};
 
@@ -45,7 +43,7 @@ const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,20,-1},
 //Train settings
 const int NUM_TRAINS = 7;
 const int RECHARGING_MULTIPLIER = 10;
-const int SPEED[NUM_TRAINS] = {7,7,8,9,7,10,8};
+const int SPEED[NUM_TRAINS] = {15,15,15,15,15,15,15};
 const int MAX_CHARGE[NUM_TRAINS] = {30, 32, 32, 28, 24, 18, 35}; //time
 const int INITIAL_CHARGE[NUM_TRAINS] ={28,28,32,25,24,18,30}; //must be less than MAX_CHARGE
 const int INITIAL_STATION[NUM_TRAINS] = {0,3,0,4,4,3,0}; //the station where the train starts
@@ -76,20 +74,21 @@ const int DISTANCES [NUM_STATIONS][NUM_STATIONS] ={{0,70,-1,-1,-1},
                                                      {-1,50,0,60,80},
                                                      {-1,-1,60,0,-1},
                                                      {-1,-1,80,-1,0}};
-const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,28,-1,-1,-1},
-                                                     {28,0,25,-1,-1},
-                                                     {-1,25,0,24,28},
-                                                     {-1,-1,24,0,-1},
-                                                     {-1,-1,28,-1,0}};
+const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,1000,-1,-1,-1},
+                                                     {1000,0,1000,-1,-1},
+                                                     {-1,1000,0,1000,1000},
+                                                     {-1,-1,1000,0,-1},
+                                                     {-1,-1,1000,-1,0}};
 
 
 
 //Channels
 chan enter_station_request[NUM_STATIONS];
-urgent chan enter_station_reply_ok[NUM_TRAINS];
-urgent chan enter_station_reply_ko[NUM_TRAINS];
+chan enter_station_reply_ok[NUM_TRAINS];
+chan enter_station_reply_ko[NUM_TRAINS];
 chan exit_station[NUM_STATIONS];
 chan force_exit[NUM_STATIONS];
+
 
 //Global functions
 bool authorization_granted(int station){
@@ -267,7 +266,7 @@ void update_train_info(){
 		</location>
 		<location id="id5" x="-756" y="-901">
 			<name x="-833" y="-935">Waiting_Request_Delay</name>
-			<label kind="invariant" x="-994" y="-892">waiting_time &lt;= REQUEST_DELAY-1</label>
+			<label kind="invariant" x="-994" y="-918">waiting_time &lt;= REQUEST_DELAY</label>
 		</location>
 		<location id="id6" x="-1615" y="-885">
 			<name x="-1641" y="-919">Initializer</name>
@@ -298,8 +297,8 @@ increase_inside_count(), dequeue(), update_train_info()</label>
 			<target ref="id4"/>
 			<label kind="guard" x="-1011" y="-833">waiting_time &gt;= REQUEST_DELAY-1</label>
 			<label kind="synchronisation" x="-1011" y="-816">enter_station_request[next_station]!</label>
-			<label kind="assignment" x="-1011" y="-799">decrease_charge(REQUEST_DELAY),
-waiting_time = 0, enqueue()</label>
+			<label kind="assignment" x="-1011" y="-799">decrease_charge(REQUEST_DELAY), 
+enqueue(), waiting_time = 0</label>
 		</transition>
 		<transition>
 			<source ref="id4"/>
@@ -404,52 +403,55 @@ void dequeue(){
     }
 }
 
+int bug(){
+    return ENTERING_QUEUE[id_station][0];
+}
 </declaration>
 		<location id="id7" x="-3349" y="-3306">
-			<name x="-3383" y="-3332">Idle</name>
+			<name x="-3357" y="-3289">Idle</name>
 		</location>
 		<init ref="id7"/>
 		<transition>
 			<source ref="id7"/>
 			<target ref="id7"/>
-			<label kind="guard" x="-3187" y="-3425">kick_trains_asap == true</label>
+			<label kind="guard" x="-3187" y="-3425">trains_entering() &amp;&amp; kick_trains_asap</label>
 			<label kind="synchronisation" x="-3187" y="-3408">force_exit[id_station]!</label>
-			<nail x="-3196" y="-3442"/>
-			<nail x="-3196" y="-3374"/>
+			<nail x="-3340" y="-3442"/>
+			<nail x="-3204" y="-3340"/>
 		</transition>
 		<transition>
 			<source ref="id7"/>
 			<target ref="id7"/>
-			<label kind="guard" x="-3621" y="-3493">trains_entering() &amp;&amp; not authorization_granted(id_station) &amp;&amp; kick_trains_asap == false</label>
-			<label kind="synchronisation" x="-3570" y="-3476">enter_station_reply_ko[(ENTERING_QUEUE[id_station][0])]!</label>
-			<label kind="assignment" x="-3510" y="-3459">kick_trains_asap = true</label>
-			<nail x="-3400" y="-3434"/>
-			<nail x="-3349" y="-3434"/>
+			<label kind="guard" x="-3646" y="-3485">trains_entering() &amp;&amp; not authorization_granted(id_station) &amp;&amp; not kick_trains_asap</label>
+			<label kind="synchronisation" x="-3587" y="-3468">enter_station_reply_ko[bug()]!</label>
+			<label kind="assignment" x="-3561" y="-3451">kick_trains_asap = true</label>
+			<nail x="-3519" y="-3306"/>
+			<nail x="-3349" y="-3451"/>
 		</transition>
 		<transition>
 			<source ref="id7"/>
 			<target ref="id7"/>
-			<label kind="guard" x="-3187" y="-3315">trains_entering() &amp;&amp; authorization_granted(id_station) &amp;&amp; kick_trains_asap == false</label>
-			<label kind="synchronisation" x="-3187" y="-3298">enter_station_reply_ok[(ENTERING_QUEUE[id_station][0])]!</label>
-			<label kind="assignment" x="-3187" y="-3281">check_situation()</label>
-			<nail x="-3196" y="-3306"/>
-			<nail x="-3196" y="-3255"/>
+			<label kind="guard" x="-3187" y="-3341">trains_entering() &amp;&amp; authorization_granted(id_station) &amp;&amp; not kick_trains_asap</label>
+			<label kind="synchronisation" x="-3187" y="-3324">enter_station_reply_ok[bug()]!</label>
+			<label kind="assignment" x="-3187" y="-3307">check_situation()</label>
+			<nail x="-3196" y="-3332"/>
+			<nail x="-3238" y="-3213"/>
 		</transition>
 		<transition>
 			<source ref="id7"/>
 			<target ref="id7"/>
-			<label kind="synchronisation" x="-3468" y="-3170">enter_station_request[id_station]?</label>
-			<label kind="assignment" x="-3417" y="-3153">check_situation ()</label>
-			<nail x="-3349" y="-3170"/>
-			<nail x="-3400" y="-3170"/>
+			<label kind="synchronisation" x="-3374" y="-3187">enter_station_request[id_station]?</label>
+			<label kind="assignment" x="-3374" y="-3170">check_situation ()</label>
+			<nail x="-3247" y="-3204"/>
+			<nail x="-3434" y="-3179"/>
 		</transition>
 		<transition>
 			<source ref="id7"/>
 			<target ref="id7"/>
-			<label kind="synchronisation" x="-3646" y="-3306">exit_station[id_station]?</label>
-			<label kind="assignment" x="-3612" y="-3289">check_situation ()</label>
-			<nail x="-3493" y="-3306"/>
-			<nail x="-3493" y="-3264"/>
+			<label kind="synchronisation" x="-3621" y="-3229">exit_station[id_station]?</label>
+			<label kind="assignment" x="-3612" y="-3212">check_situation ()</label>
+			<nail x="-3519" y="-3298"/>
+			<nail x="-3442" y="-3187"/>
 		</transition>
 	</template>
 	<system>
@@ -490,31 +492,7 @@ system train_0, train_1, train_2, train_3, train_4, train_5, train_6, station_0,
 </system>
 	<queries>
 		<query>
-			<formula>A[] ( train_6.Charging imply !train_6.ERROR )</formula>
-			<comment></comment>
-		</query>
-		<query>
-			<formula>A[] ( train_5.Charging imply !train_5.ERROR )</formula>
-			<comment></comment>
-		</query>
-		<query>
-			<formula>A[] ( train_4.Charging imply !train_4.ERROR )</formula>
-			<comment></comment>
-		</query>
-		<query>
-			<formula>A[] ( train_3.Charging imply !train_3.ERROR )</formula>
-			<comment></comment>
-		</query>
-		<query>
-			<formula>A[] ( train_2.Charging imply !train_2.ERROR )</formula>
-			<comment></comment>
-		</query>
-		<query>
-			<formula>A[] ( train_1.Charging imply !train_1.ERROR )</formula>
-			<comment></comment>
-		</query>
-		<query>
-			<formula>A[] ( train_0.Charging imply !train_0.ERROR )</formula>
+			<formula>A[] not deadlock</formula>
 			<comment></comment>
 		</query>
 		<query>
