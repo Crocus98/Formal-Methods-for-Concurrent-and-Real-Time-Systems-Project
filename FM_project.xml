@@ -544,75 +544,79 @@ system Train, Station;
 </system>
 	<queries>
 		<query>
-			<formula>A&lt;&gt; ( train_6.Charging imply !train_6.ERROR )</formula>
+			<formula>A[] ( Train(0).Moving imply Train(0).charge &gt; 0 )</formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A&lt;&gt; ( train_5.Charging imply !train_5.ERROR )</formula>
+			<formula>A[] ( Train(6).Charging imply !Train(6).ERROR )</formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A&lt;&gt; ( train_4.Charging imply !train_4.ERROR )</formula>
+			<formula>A[] ( Train(5).Charging imply !Train(5).ERROR )</formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A&lt;&gt; ( train_3.Charging imply !train_3.ERROR )</formula>
+			<formula>A[] ( Train(4).Charging imply !Train(4).ERROR )</formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A&lt;&gt; ( train_2.Charging imply !train_2.ERROR )</formula>
+			<formula>A[] ( Train(3).Charging imply !Train(3).ERROR )</formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A&lt;&gt; ( train_1.Charging imply !train_1.ERROR )</formula>
+			<formula>A[] ( Train(2).Charging imply !Train(2).ERROR )</formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A&lt;&gt; ( train_0.Charging imply !train_0.ERROR )</formula>
+			<formula>A[] ( Train(1).Charging imply !Train(1).ERROR )</formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A&lt;&gt; ( TRAINS_INSIDE[station_4.id_station] &lt;= MAX_TRACKS[station_4.id_station] )</formula>
+			<formula>A[] ( Train(0).Charging imply !Train(0).ERROR )</formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A&lt;&gt; ( TRAINS_INSIDE[station_3.id_station] &lt;= MAX_TRACKS[station_3.id_station] )</formula>
+			<formula>A[] ( TRAINS_INSIDE[Station(4).id_station] &lt;= MAX_TRACKS[Station(4).id_station] )</formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A&lt;&gt; ( TRAINS_INSIDE[station_2.id_station] &lt;= MAX_TRACKS[station_2.id_station] )</formula>
+			<formula>A[] ( TRAINS_INSIDE[Station(3).id_station] &lt;= MAX_TRACKS[Station(3).id_station] )</formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A&lt;&gt; ( TRAINS_INSIDE[station_1.id_station] &lt;= MAX_TRACKS[station_1.id_station] )</formula>
+			<formula>A[] ( TRAINS_INSIDE[Station(2).id_station] &lt;= MAX_TRACKS[Station(2).id_station] )</formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A&lt;&gt; ( TRAINS_INSIDE[station_0.id_station] &lt;= MAX_TRACKS[station_0.id_station] )</formula>
+			<formula>A[] ( TRAINS_INSIDE[Station(1).id_station] &lt;= MAX_TRACKS[Station(1).id_station] )</formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A&lt;&gt; ( train_6.mov_time &lt;= MAX_DELAYS[train_6.current_station][train_6.next_station] )</formula>
+			<formula>A[] ( TRAINS_INSIDE[Station(0).id_station] &lt;= MAX_TRACKS[Station(0).id_station] )</formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A&lt;&gt; ( train_5.mov_time &lt;= MAX_DELAYS[train_5.current_station][train_5.next_station] )</formula>
+			<formula>A[] ( Train(6).mov_time &lt;= MAX_DELAYS[Train(6).current_station][Train(6).next_station] )</formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A&lt;&gt; ( train_4.mov_time &lt;= MAX_DELAYS[train_4.current_station][train_4.next_station] )</formula>
+			<formula>A[] ( Train(5).mov_time &lt;= MAX_DELAYS[Train(5).current_station][Train(5).next_station] )</formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A&lt;&gt; ( train_3.mov_time &lt;= MAX_DELAYS[train_3.current_station][train_3.next_station] )</formula>
+			<formula>A[] ( Train(4).mov_time &lt;= MAX_DELAYS[Train(4).current_station][Train(4).next_station] )</formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A&lt;&gt; ( train_2.mov_time &lt;= MAX_DELAYS[train_2.current_station][train_2.next_station] )</formula>
+			<formula>A[] ( Train(3).mov_time &lt;= MAX_DELAYS[Train(3).current_station][Train(3).next_station] )</formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A&lt;&gt; ( train_1.mov_time &lt;= MAX_DELAYS[train_1.current_station][train_1.next_station] )</formula>
+			<formula>A[] ( Train(2).mov_time &lt;= MAX_DELAYS[Train(2).current_station][Train(2).next_station] )</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A[] ( Train(1).mov_time &lt;= MAX_DELAYS[Train(1).current_station][Train(1).next_station] )</formula>
 			<comment></comment>
 		</query>
 		<query>
@@ -620,27 +624,27 @@ system Train, Station;
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A&lt;&gt; ( train_6.charge &gt; 0 )</formula>
+			<formula>A[] ( Train(6).charge &gt; 0 )</formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A&lt;&gt; ( train_5.charge &gt; 0 )</formula>
+			<formula>A[] ( Train(5).charge &gt; 0 )</formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A&lt;&gt; ( train_4.charge &gt; 0 )</formula>
+			<formula>A[] ( Train(4).charge &gt; 0 )</formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A&lt;&gt; ( train_3.charge &gt; 0 )</formula>
+			<formula>A[] ( Train(3).charge &gt; 0 )</formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A&lt;&gt; ( train_2.charge &gt; 0 )</formula>
+			<formula>A[] ( Train(2).charge &gt; 0 )</formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A&lt;&gt; ( Train(1).charge &gt; 0 )</formula>
+			<formula>A[] ( Train(1).charge &gt; 0 )</formula>
 			<comment></comment>
 		</query>
 		<query>
