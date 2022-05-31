@@ -90,7 +90,7 @@ const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,1000,-1,-1,-1},
 //Channels
 chan enter_station_request[NUM_STATIONS][NUM_TRAINS];
 chan enter_station_reply_ok[NUM_TRAINS];
-broadcast chan enter_station_reply_ko[NUM_TRAINS];
+chan enter_station_reply_ko[NUM_TRAINS];
 chan exit_station[NUM_STATIONS];
 
 
@@ -177,7 +177,7 @@ void enqueue(){
 }
 
 bool enter_permission(){
-    if(ENTERING_QUEUE[current_station][0]==id_train &amp;&amp; authorization_granted(current_station)){
+    if(ENTERING_QUEUE[current_station][0]==id_train &amp;&amp; !authorization_granted(current_station)){
         return true;
     }
     return false;
@@ -286,7 +286,7 @@ void update_train_info(){
 		<transition>
 			<source ref="id1"/>
 			<target ref="id2"/>
-			<label kind="guard" x="-1198" y="-527">enter_permission()</label>
+			<label kind="guard" x="-1258" y="-527">enter_permission()</label>
 		</transition>
 		<transition>
 			<source ref="id4"/>
@@ -304,8 +304,8 @@ void update_train_info(){
 		<transition>
 			<source ref="id3"/>
 			<target ref="id0"/>
-			<label kind="synchronisation" x="-1479" y="-756">enter_station_reply_ok[id_train]?</label>
-			<label kind="assignment" x="-1479" y="-739">mov_time = 0, waiting_time = 0, decrease_charge(1),
+			<label kind="synchronisation" x="-1334" y="-756">enter_station_reply_ok[id_train]?</label>
+			<label kind="assignment" x="-1334" y="-739">mov_time = 0, waiting_time = 0, decrease_charge(1),
 update_train_info()</label>
 		</transition>
 		<transition>
