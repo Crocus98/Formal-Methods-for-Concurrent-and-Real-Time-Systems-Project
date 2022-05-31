@@ -3,14 +3,14 @@
 <nta>
 	<declaration>//SIMPLE SETTINGS
 //Train settings
-/*const int NUM_TRAINS = 3;
+const int NUM_TRAINS = 3;
 const int RECHARGING_MULTIPLIER = 3;
 const int SPEED[NUM_TRAINS] = {7,10,8};
 const int MAX_CHARGE[NUM_TRAINS] = {30,35,28}; //time
 const int INITIAL_CHARGE[NUM_TRAINS] ={28,30,25}; //must be less than MAX_CHARGE
-const int INITIAL_STATION[NUM_TRAINS] = {0,1,2};
+const int INITIAL_STATION[NUM_TRAINS] = {0,0,2};
 const int T_LINES[NUM_TRAINS] = {0,0,0};
-const int NEXT_STATION[NUM_TRAINS] = {1,0,1}; //must be inside the line
+const int NEXT_STATION[NUM_TRAINS] = {1,1,1}; //must be inside the line
 
 
 //Station settings
@@ -19,7 +19,7 @@ const int SPARE_TIME = 6;
 const int MAX_TRACKS[NUM_STATIONS] = {2,2,1};
 const int PASSENGERS_TIME = 3;
 const int REQUEST_DELAY = 2;
-int TRAINS_INSIDE[NUM_STATIONS] = {1,1,1};
+int TRAINS_INSIDE[NUM_STATIONS] = {2,0,1};
 int ENTERING_QUEUE [NUM_STATIONS][NUM_TRAINS] = {{-1,-1,-1},
                                                 {-1,-1,-1},
                                                 {-1,-1,-1}};
@@ -31,14 +31,14 @@ const int LINES[NUM_LINES][NUM_MAX_STATIONS_LINE] = {{0,1,2},{0,1,-1}}; //0,1,2
 const int DISTANCES [NUM_STATIONS][NUM_STATIONS] ={{0,70,-1},
                                                    {70,0,50},
                                                    {-1,50,0}};
-const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,20,-1},
-                                                    {20,0,18},
-                                                    {-1,18,0}};
-*/
+const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,40,-1},
+                                                    {40,0,36},
+                                                    {-1,36,0}};
 
 
 
 
+/*
 //COMPLETE SETTINGS
 //Train settings
 const int NUM_TRAINS = 7;
@@ -79,7 +79,7 @@ const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,1000,-1,-1,-1},
                                                      {-1,1000,0,1000,1000},
                                                      {-1,-1,1000,0,-1},
                                                      {-1,-1,1000,-1,0}};
-
+*/
 
 
 //Channels
@@ -95,7 +95,9 @@ bool authorization_granted(int station){
     if(TRAINS_INSIDE[station] &lt; MAX_TRACKS[station]){
         return true;
     }
-    return false;
+    else{
+        return false;
+    }
 }
 </declaration>
 	<template>
@@ -414,34 +416,32 @@ int bug(){
 		<transition>
 			<source ref="id7"/>
 			<target ref="id7"/>
-			<label kind="guard" x="-3187" y="-3425">trains_entering() &amp;&amp; kick_trains_asap</label>
-			<label kind="synchronisation" x="-3187" y="-3408">force_exit[id_station]!</label>
+			<label kind="guard" x="-3264" y="-3425">trains_entering() &amp;&amp; kick_trains_asap</label>
+			<label kind="synchronisation" x="-3264" y="-3408">force_exit[id_station]!</label>
 			<nail x="-3340" y="-3442"/>
 			<nail x="-3204" y="-3340"/>
 		</transition>
 		<transition>
 			<source ref="id7"/>
 			<target ref="id7"/>
-			<label kind="guard" x="-3646" y="-3485">trains_entering() &amp;&amp; not authorization_granted(id_station) &amp;&amp; not kick_trains_asap</label>
-			<label kind="synchronisation" x="-3587" y="-3468">enter_station_reply_ko[bug()]!</label>
-			<label kind="assignment" x="-3561" y="-3451">kick_trains_asap = true</label>
+			<label kind="guard" x="-3918" y="-3434">trains_entering() &amp;&amp; not authorization_granted(id_station) &amp;&amp; not kick_trains_asap</label>
+			<label kind="synchronisation" x="-3646" y="-3417">enter_station_reply_ko[bug()]!</label>
+			<label kind="assignment" x="-3604" y="-3400">kick_trains_asap = true</label>
 			<nail x="-3519" y="-3306"/>
 			<nail x="-3349" y="-3451"/>
 		</transition>
 		<transition>
 			<source ref="id7"/>
 			<target ref="id7"/>
-			<label kind="guard" x="-3187" y="-3341">trains_entering() &amp;&amp; authorization_granted(id_station) &amp;&amp; not kick_trains_asap</label>
-			<label kind="synchronisation" x="-3187" y="-3324">enter_station_reply_ok[bug()]!</label>
-			<label kind="assignment" x="-3187" y="-3307">check_situation()</label>
+			<label kind="guard" x="-3204" y="-3298">trains_entering() &amp;&amp; authorization_granted(id_station) &amp;&amp; not kick_trains_asap</label>
+			<label kind="synchronisation" x="-3204" y="-3281">enter_station_reply_ok[bug()]!</label>
 			<nail x="-3196" y="-3332"/>
 			<nail x="-3238" y="-3213"/>
 		</transition>
 		<transition>
 			<source ref="id7"/>
 			<target ref="id7"/>
-			<label kind="synchronisation" x="-3374" y="-3187">enter_station_request[id_station]?</label>
-			<label kind="assignment" x="-3374" y="-3170">check_situation ()</label>
+			<label kind="synchronisation" x="-3417" y="-3179">enter_station_request[id_station]?</label>
 			<nail x="-3247" y="-3204"/>
 			<nail x="-3434" y="-3179"/>
 		</transition>
@@ -457,7 +457,7 @@ int bug(){
 	<system>
 //SIMPLE SETTINGS
 //id_train, charge, max_charge, speed, current_station, line, next_station
-/*train_0 = Train (0, INITIAL_CHARGE[0], MAX_CHARGE[0], SPEED[0], INITIAL_STATION[0], T_LINES[0], NEXT_STATION[0]);
+train_0 = Train (0, INITIAL_CHARGE[0], MAX_CHARGE[0], SPEED[0], INITIAL_STATION[0], T_LINES[0], NEXT_STATION[0]);
 train_1 = Train (1, INITIAL_CHARGE[1], MAX_CHARGE[1], SPEED[1], INITIAL_STATION[1], T_LINES[1], NEXT_STATION[1]);
 train_2 = Train (2, INITIAL_CHARGE[2], MAX_CHARGE[2], SPEED[2], INITIAL_STATION[2], T_LINES[2], NEXT_STATION[2]);
 
@@ -468,8 +468,8 @@ station_2 = Station(2);
 
 // List one or more processes to be composed into a system.
 system train_0, train_1, train_2, station_0, station_1, station_2;
-*/
 
+/*
 //COMPLETE SETTINGS
 //id_train, charge, max_charge, speed, current_station, line, next_station
 train_0 = Train (0, INITIAL_CHARGE[0], MAX_CHARGE[0], SPEED[0], INITIAL_STATION[0], T_LINES[0], NEXT_STATION[0]);
@@ -489,7 +489,7 @@ station_4 = Station(4);
 
 // List one or more processes to be composed into a system.
 system train_0, train_1, train_2, train_3, train_4, train_5, train_6, station_0, station_1, station_2, station_3, station_4;
-</system>
+*/</system>
 	<queries>
 		<query>
 			<formula>A[] not deadlock</formula>
