@@ -38,8 +38,9 @@ const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,20,-1},
                                                     {-1,18,0}};
 */
 
-
-
+// GLOBAL VARIABLE
+clock day_time;
+const int END_OF_THE_DAY = 600; 
 
 //COMPLETE SETTINGS
 //Train settings
@@ -78,11 +79,11 @@ const int DISTANCES [NUM_STATIONS][NUM_STATIONS] ={{0,70,-1,-1,-1},
                                                      {-1,50,0,60,80},
                                                      {-1,-1,60,0,-1},
                                                      {-1,-1,80,-1,0}};
-const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,28,-1,-1,-1},
-                                                     {28,0,25,-1,-1},
-                                                     {-1,25,0,24,28},
-                                                     {-1,-1,24,0,-1},
-                                                     {-1,-1,28,-1,0}};
+const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,100,-1,-1,-1},
+                                                     {100,0,100,-1,-1},
+                                                     {-1,100,0,100,100},
+                                                     {-1,-1,100,0,-1},
+                                                     {-1,-1,100,-1,0}};
 
 typedef int[0, NUM_TRAINS - 1] train_t;
 typedef int[0, NUM_STATIONS - 1] station_t;
@@ -98,8 +99,8 @@ bool forced_to_exit(int station){
 
 //Channels
 chan enter_station_request[NUM_STATIONS];
-urgent chan enter_station_reply_ok[NUM_STATIONS]; //broadcast
-urgent chan enter_station_reply_ko[NUM_STATIONS]; //broadcast
+urgent chan enter_station_reply_ok[NUM_STATIONS];
+urgent chan enter_station_reply_ko[NUM_STATIONS];
 chan exit_station[NUM_STATIONS];
 
 //Global functions
@@ -232,6 +233,13 @@ void dequeue(){
     }
 }
 
+bool initial_station(){
+    if(INITIAL_STATION[id_train] == current_station){
+        return true;
+    }
+    return false;
+}
+
 void dequeue_train(){
     int pos = 0;
     for(i : int[0, NUM_TRAINS-1]){
@@ -316,8 +324,8 @@ void update_train_info(){
     return;
 }</declaration>
 		<location id="id0" x="-1615" y="-697">
-			<name x="-1692" y="-740">Charging</name>
-			<label kind="invariant" x="-1938" y="-705">waiting_time &lt;= get_minimal_recharge_time()</label>
+			<name x="-1606" y="-739">Charging</name>
+			<label kind="invariant" x="-1606" y="-722">waiting_time &lt;= get_minimal_recharge_time()</label>
 		</location>
 		<location id="id1" x="-1615" y="-502">
 			<name x="-1709" y="-502">Overcharging</name>
@@ -342,14 +350,41 @@ void update_train_info(){
 		<location id="id6" x="-1615" y="-885">
 			<name x="-1641" y="-919">Initializer</name>
 		</location>
-		<location id="id7" x="-1130" y="-697">
-			<name x="-1122" y="-722">Check_Queue</name>
-			<label kind="invariant" x="-1122" y="-739">waiting_time &lt;= 1</label>
+		<location id="id7" x="-969" y="-969">
+			<name x="-994" y="-952">ERROR</name>
 		</location>
-		<location id="id8" x="-952" y="-994">
-			<name x="-977" y="-977">ERROR</name>
+		<location id="id8" x="-2023" y="-697">
+			<name x="-2074" y="-748">End_Of_The_Day</name>
+			<label kind="invariant" x="-2074" y="-731">mov_time &lt;= 2</label>
 		</location>
 		<init ref="id6"/>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id8"/>
+			<label kind="guard" x="-2295" y="-714">mov_time &gt;= 2</label>
+			<label kind="assignment" x="-2278" y="-697">mov_time=0</label>
+			<nail x="-2193" y="-697"/>
+			<nail x="-2193" y="-629"/>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id8"/>
+			<label kind="guard" x="-1989" y="-714">initial_station() &amp;&amp; day_time &gt;= END_OF_THE_DAY</label>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id7"/>
+			<label kind="guard" x="-1377" y="-994">charge &lt;= 0 || mov_time &gt;= get_maximal_delay()</label>
+			<nail x="-1147" y="-756"/>
+			<nail x="-1147" y="-969"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="-1326" y="-697">enter_station_reply_ok[next_station]?</label>
+			<label kind="assignment" x="-1411" y="-680">decrease_charge(1), waiting_time = 0, mov_time = 0, dequeue_train(), 
+increase_inside_count(), decrease_temp_train(), update_train_info()</label>
+		</transition>
 		<transition>
 			<source ref="id4"/>
 			<target ref="id4"/>
@@ -359,30 +394,10 @@ void update_train_info(){
 			<nail x="-586" y="-637"/>
 		</transition>
 		<transition>
-			<source ref="id7"/>
-			<target ref="id8"/>
-			<label kind="guard" x="-1402" y="-1020">charge &lt;= 0 || mov_time &gt; get_maximal_delay()</label>
-			<nail x="-1130" y="-994"/>
-		</transition>
-		<transition>
 			<source ref="id5"/>
-			<target ref="id8"/>
-			<label kind="guard" x="-918" y="-1020">charge &lt;= 0 || mov_time &gt; get_maximal_delay()</label>
-			<nail x="-756" y="-994"/>
-		</transition>
-		<transition>
-			<source ref="id7"/>
-			<target ref="id0"/>
-			<label kind="assignment" x="-1538" y="-688">mov_time = 0, waiting_time = 0, decrease_charge(1), 
-increase_inside_count(), decrease_temp_train(), 
-update_train_info()</label>
-		</transition>
-		<transition>
-			<source ref="id4"/>
 			<target ref="id7"/>
-			<label kind="synchronisation" x="-1062" y="-697">enter_station_reply_ok[next_station]?</label>
-			<label kind="assignment" x="-1062" y="-680">decrease_charge(1), waiting_time = 0, 
-dequeue_train()</label>
+			<label kind="guard" x="-918" y="-994">charge &lt;= 0 || mov_time &gt;= get_maximal_delay()</label>
+			<nail x="-756" y="-969"/>
 		</transition>
 		<transition>
 			<source ref="id6"/>
@@ -453,6 +468,7 @@ decrease_waiting_count()</label>
 		<transition>
 			<source ref="id0"/>
 			<target ref="id1"/>
+			<label kind="guard" x="-1963" y="-654">not initial_station() || day_time &lt; END_OF_THE_DAY</label>
 			<label kind="assignment" x="-1938" y="-637">increase_charge(get_minimal_recharge_time()), 
 waiting_time = 0</label>
 		</transition>
@@ -620,7 +636,7 @@ system Train, Station;
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A[] ( Train(0).mov_time &lt;= MAX_DELAYS[Train(0).current_station][Train(0).next_station] )</formula>
+			<formula>A[] ( !Train(0).End_Of_The_Day imply Train(0).mov_time &lt;= MAX_DELAYS[Train(0).current_station][Train(0).next_station] )</formula>
 			<comment></comment>
 		</query>
 		<query>
