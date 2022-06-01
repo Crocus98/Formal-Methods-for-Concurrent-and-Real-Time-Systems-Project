@@ -21,7 +21,7 @@ bool FINISH[NUM_TRAINS] = {false, false, false};
 //Station settings
 const int NUM_STATIONS = 3;
 const int SPARE_TIME = 6;
-const int MAX_TRACKS[NUM_STATIONS] = {2,2,1};
+const int MAX_TRACKS[NUM_STATIONS] = {3,2,3};
 const int PASSENGERS_TIME = 3;
 const int REQUEST_DELAY = 2;
 int TRAINS_INSIDE[NUM_STATIONS] = {2,0,1};
@@ -34,9 +34,9 @@ const int LINES[NUM_LINES][NUM_MAX_STATIONS_LINE] = {{0,1,2},{0,1,-1}}; //0,1,2
 const int DISTANCES [NUM_STATIONS][NUM_STATIONS] ={{0,70,-1},
                                                    {70,0,50},
                                                    {-1,50,0}};
-const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,50,-1},
-                                                    {50,0,40},
-                                                    {-1,40,0}};
+const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,60,-1},
+                                                    {60,0,60},
+                                                    {-1,60,0}};
 
 /*
 //COMPLETE SETTINGS
@@ -268,7 +268,7 @@ void update_train_info(){
 		</location>
 		<location id="id3" x="-756" y="-697">
 			<name x="-748" y="-688">Waiting</name>
-			<label kind="invariant" x="-918" y="-671">waiting_time &lt;= REQUEST_DELAY</label>
+			<committed/>
 		</location>
 		<location id="id4" x="-756" y="-901">
 			<name x="-833" y="-935">Waiting_Request_Delay</name>
@@ -323,14 +323,6 @@ void update_train_info(){
 			<label kind="synchronisation" x="-1326" y="-697">enter_station_reply_ok[next_station]?</label>
 			<label kind="assignment" x="-1428" y="-680">decrease_charge(1), waiting_time = 0, mov_time = 0, increase_inside_count(), 
 update_train_info(), decrease_waiting_trains()</label>
-		</transition>
-		<transition>
-			<source ref="id3"/>
-			<target ref="id3"/>
-			<label kind="guard" x="-578" y="-688">waiting_time &gt;= REQUEST_DELAY</label>
-			<label kind="assignment" x="-578" y="-671">waiting_time = 0, decrease_charge(REQUEST_DELAY)</label>
-			<nail x="-586" y="-697"/>
-			<nail x="-586" y="-637"/>
 		</transition>
 		<transition>
 			<source ref="id5"/>
@@ -539,7 +531,7 @@ system Train, Station;
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A[] ( !Train(0).End_Of_The_Day imply Train(0).mov_time &lt;= MAX_DELAYS[Train(0).current_station][Train(0).next_station] )</formula>
+			<formula>A[] ( !Train(0).End_Of_The_Day imply (Train(0).mov_time &lt;= MAX_DELAYS[Train(0).current_station][Train(0).next_station]) )</formula>
 			<comment></comment>
 		</query>
 		<query>
