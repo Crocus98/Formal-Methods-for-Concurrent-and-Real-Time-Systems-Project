@@ -1,16 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
 <nta>
-	<declaration>//SIMPLE SETTINGS
+	<declaration>// GLOBAL VARIABLE
+clock day_time;
+const int END_OF_THE_DAY = 600;
+
+//SIMPLE SETTINGS
 //Train settings
-/*const int NUM_TRAINS = 3;
+const int NUM_TRAINS = 3;
 const int RECHARGING_MULTIPLIER = 3;
 const int SPEED[NUM_TRAINS] = {7,10,8};
 const int MAX_CHARGE[NUM_TRAINS] = {30,35,28}; //time
 const int INITIAL_CHARGE[NUM_TRAINS] ={28,30,25}; //must be less than MAX_CHARGE
-const int INITIAL_STATION[NUM_TRAINS] = {0,1,2};
+const int INITIAL_STATION[NUM_TRAINS] = {0,0,2};
 const int T_LINES[NUM_TRAINS] = {0,0,0};
-const int NEXT_STATION[NUM_TRAINS] = {1,0,1}; //must be inside the line
+const int NEXT_STATION[NUM_TRAINS] = {1,1,1}; //must be inside the line
+bool FINISH[NUM_TRAINS] = {false, false, false};
 
 
 //Station settings
@@ -19,7 +24,7 @@ const int SPARE_TIME = 6;
 const int MAX_TRACKS[NUM_STATIONS] = {2,2,1};
 const int PASSENGERS_TIME = 3;
 const int REQUEST_DELAY = 2;
-int TRAINS_INSIDE[NUM_STATIONS] = {1,1,1};
+int TRAINS_INSIDE[NUM_STATIONS] = {2,0,1};
 int FORCED_TO_LEAVE_COUNT [NUM_STATIONS] = {0,0,0};
 int [0, NUM_TRAINS] TEMP_TRAINS [NUM_STATIONS] = {0,0,0};
 int WAITING_QUEUE [NUM_STATIONS][NUM_TRAINS] = {{-1,-1,-1},
@@ -33,15 +38,11 @@ const int LINES[NUM_LINES][NUM_MAX_STATIONS_LINE] = {{0,1,2},{0,1,-1}}; //0,1,2
 const int DISTANCES [NUM_STATIONS][NUM_STATIONS] ={{0,70,-1},
                                                    {70,0,50},
                                                    {-1,50,0}};
-const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,20,-1},
-                                                    {20,0,18},
-                                                    {-1,18,0}};
-*/
+const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,50,-1},
+                                                    {50,0,40},
+                                                    {-1,40,0}};
 
-// GLOBAL VARIABLE
-clock day_time;
-const int END_OF_THE_DAY = 600; 
-
+/*
 //COMPLETE SETTINGS
 //Train settings
 const int NUM_TRAINS = 7;
@@ -52,6 +53,7 @@ const int INITIAL_CHARGE[NUM_TRAINS] ={28,28,32,25,24,18,30}; //must be less tha
 const int INITIAL_STATION[NUM_TRAINS] = {0,3,0,4,4,3,0}; //the station where the train starts
 const int T_LINES[NUM_TRAINS] = {1,2,0,2,1,0,1}; //the line the train follows
 const int NEXT_STATION[NUM_TRAINS] = {1,2,1,2,2,2,1}; //must be inside the line
+bool FINISH[NUM_TRAINS] = {false, false, false, false, false, false, false};
 
 
 //Station settings
@@ -85,17 +87,12 @@ const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,100,-1,-1,-1},
                                                      {-1,-1,100,0,-1},
                                                      {-1,-1,100,-1,0}};
 
+*/
+
 typedef int[0, NUM_TRAINS - 1] train_t;
 typedef int[0, NUM_STATIONS - 1] station_t;
 
-bool forced_to_exit(int station){
-    if(TRAINS_INSIDE[station] == MAX_TRACKS[station] &amp;&amp; WAITING_QUEUE[station][0]!=-1){
-        return true;
-    }
-    else{
-        return false;
-    }
-}
+
 
 //Channels
 chan enter_station_request[NUM_STATIONS];
@@ -110,6 +107,15 @@ bool authorization_granted(int station){
     }
     return false;
 }
+
+bool forced_to_exit(int station){
+    if(TRAINS_INSIDE[station] == MAX_TRACKS[station] &amp;&amp; WAITING_QUEUE[station][0]!=-1){
+        return true;
+    }
+    else{
+        return false;
+    }
+}
 </declaration>
 	<template>
 		<name x="5" y="5">Train</name>
@@ -118,12 +124,12 @@ bool authorization_granted(int station){
 clock waiting_time;
 clock temp_mov_time;
 
-int charge = INITIAL_CHARGE[id_train];
-int max_charge = MAX_CHARGE[id_train];
-
 const int speed = SPEED[id_train];
 const int line = T_LINES[id_train];
-int current_station = INITIAL_STATION[id_train]; 
+
+int charge = INITIAL_CHARGE[id_train];
+int max_charge = MAX_CHARGE[id_train];
+int current_station = INITIAL_STATION[id_train];
 int next_station = NEXT_STATION[id_train];
 
 //Functions
@@ -277,6 +283,15 @@ bool not_next(){
     return false;
 }
 
+bool all_finish(){
+    for(i : int[0, NUM_TRAINS-1]){
+        if(FINISH[i] == false){
+            return false;
+        }
+    }
+    return true;
+}
+
 
 void update_train_info(){
     int next_index = 0;
@@ -350,33 +365,24 @@ void update_train_info(){
 		<location id="id6" x="-1615" y="-885">
 			<name x="-1641" y="-919">Initializer</name>
 		</location>
-		<location id="id7" x="-969" y="-969">
-			<name x="-994" y="-952">ERROR</name>
-		</location>
-		<location id="id8" x="-2023" y="-697">
+		<location id="id7" x="-2023" y="-697">
 			<name x="-2074" y="-748">End_Of_The_Day</name>
 			<label kind="invariant" x="-2074" y="-731">mov_time &lt;= 2</label>
 		</location>
 		<init ref="id6"/>
 		<transition>
-			<source ref="id8"/>
-			<target ref="id8"/>
-			<label kind="guard" x="-2295" y="-714">mov_time &gt;= 2</label>
-			<label kind="assignment" x="-2278" y="-697">mov_time=0</label>
+			<source ref="id7"/>
+			<target ref="id7"/>
+			<label kind="guard" x="-2388" y="-722">mov_time &gt;= 2 &amp;&amp; not all_finish()</label>
+			<label kind="assignment" x="-2320" y="-705">mov_time=0</label>
 			<nail x="-2193" y="-697"/>
 			<nail x="-2193" y="-629"/>
 		</transition>
 		<transition>
 			<source ref="id0"/>
-			<target ref="id8"/>
-			<label kind="guard" x="-1989" y="-714">initial_station() &amp;&amp; day_time &gt;= END_OF_THE_DAY</label>
-		</transition>
-		<transition>
-			<source ref="id4"/>
 			<target ref="id7"/>
-			<label kind="guard" x="-1377" y="-994">charge &lt;= 0 || mov_time &gt;= get_maximal_delay()</label>
-			<nail x="-1147" y="-756"/>
-			<nail x="-1147" y="-969"/>
+			<label kind="guard" x="-1980" y="-714">initial_station() &amp;&amp; day_time &gt;= END_OF_THE_DAY</label>
+			<label kind="assignment" x="-1887" y="-697">FINISH[id_train] = true</label>
 		</transition>
 		<transition>
 			<source ref="id4"/>
@@ -394,15 +400,9 @@ increase_inside_count(), decrease_temp_train(), update_train_info()</label>
 			<nail x="-586" y="-637"/>
 		</transition>
 		<transition>
-			<source ref="id5"/>
-			<target ref="id7"/>
-			<label kind="guard" x="-918" y="-994">charge &lt;= 0 || mov_time &gt;= get_maximal_delay()</label>
-			<nail x="-756" y="-969"/>
-		</transition>
-		<transition>
 			<source ref="id6"/>
 			<target ref="id0"/>
-			<label kind="assignment" x="-1810" y="-816">waiting_time=0, mov_time=0</label>
+			<label kind="assignment" x="-1887" y="-867">waiting_time=0, mov_time=0, day_time = 0</label>
 		</transition>
 		<transition>
 			<source ref="id2"/>
@@ -490,24 +490,24 @@ void increase_waiting_count(){
 
 
 </declaration>
-		<location id="id9" x="-2592" y="-3110">
+		<location id="id8" x="-2592" y="-3110">
 			<name x="-2601" y="-3145">Idle</name>
 		</location>
-		<location id="id10" x="-2210" y="-2728">
+		<location id="id9" x="-2210" y="-2728">
 			<name x="-2346" y="-2754">Handle_Request</name>
 			<committed/>
 		</location>
-		<init ref="id9"/>
+		<init ref="id8"/>
 		<transition>
-			<source ref="id10"/>
-			<target ref="id9"/>
+			<source ref="id9"/>
+			<target ref="id8"/>
 			<label kind="guard" x="-2507" y="-3043">not authorization_granted(id_station)</label>
 			<label kind="synchronisation" x="-2490" y="-3026">enter_station_reply_ko[id_station]!</label>
 			<label kind="assignment" x="-2465" y="-3009">increase_waiting_count()</label>
 		</transition>
 		<transition>
-			<source ref="id10"/>
-			<target ref="id9"/>
+			<source ref="id9"/>
+			<target ref="id8"/>
 			<label kind="guard" x="-2490" y="-3170">authorization_granted(id_station)</label>
 			<label kind="synchronisation" x="-2490" y="-3153">enter_station_reply_ok[id_station]!</label>
 			<label kind="assignment" x="-2490" y="-3136">increase_waiting_count()</label>
@@ -515,8 +515,8 @@ void increase_waiting_count(){
 			<nail x="-2210" y="-3111"/>
 		</transition>
 		<transition>
-			<source ref="id9"/>
-			<target ref="id10"/>
+			<source ref="id8"/>
+			<target ref="id9"/>
 			<label kind="synchronisation" x="-2822" y="-2745">enter_station_request[id_station]?</label>
 			<nail x="-2592" y="-2728"/>
 		</transition>
@@ -536,6 +536,7 @@ station_2 = Station(2);
 // List one or more processes to be composed into a system.
 system train_0, train_1, train_2, station_0, station_1, station_2;
 */
+
 /*
 //COMPLETE SETTINGS
 //id_train, charge, max_charge, speed, current_station, line, next_station
