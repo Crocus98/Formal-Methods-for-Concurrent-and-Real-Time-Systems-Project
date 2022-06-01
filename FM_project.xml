@@ -356,7 +356,7 @@ void update_train_info(){
 		</location>
 		<location id="id4" x="-756" y="-697">
 			<name x="-748" y="-688">Waiting</name>
-			<label kind="invariant" x="-748" y="-646">waiting_time &lt;= REQUEST_DELAY</label>
+			<label kind="invariant" x="-918" y="-671">waiting_time &lt;= REQUEST_DELAY</label>
 		</location>
 		<location id="id5" x="-756" y="-901">
 			<name x="-833" y="-935">Waiting_Request_Delay</name>
@@ -381,8 +381,8 @@ void update_train_info(){
 		<transition>
 			<source ref="id0"/>
 			<target ref="id7"/>
-			<label kind="guard" x="-1980" y="-714">initial_station() &amp;&amp; day_time &gt;= END_OF_THE_DAY</label>
-			<label kind="assignment" x="-1887" y="-697">FINISH[id_train] = true</label>
+			<label kind="guard" x="-1980" y="-722">initial_station() &amp;&amp; day_time &gt;= END_OF_THE_DAY</label>
+			<label kind="assignment" x="-1955" y="-697">FINISH[id_train] = true, decrease_inside_count()</label>
 		</transition>
 		<transition>
 			<source ref="id4"/>
