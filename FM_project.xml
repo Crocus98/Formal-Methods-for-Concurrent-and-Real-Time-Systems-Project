@@ -2,7 +2,6 @@
 <!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
 <nta>
 	<declaration>// GLOBAL VARIABLE
-clock day_time;
 const int END_OF_THE_DAY = 80;
 
 //SIMPLE SETTINGS
@@ -16,6 +15,7 @@ const int INITIAL_STATION[NUM_TRAINS] = {0, 2};
 const int T_LINES[NUM_TRAINS] = {0, 0};
 const int NEXT_STATION[NUM_TRAINS] = {1, 1}; //must be inside the line
 bool FINISH[NUM_TRAINS] = {false, false};
+const int NUMBER_OF_LAPS[NUM_TRAINS] = {3,3};
 
 
 //Station settings
@@ -102,8 +102,7 @@ bool authorization_granted(int station){
 	<template>
 		<name x="5" y="5">Train</name>
 		<parameter>const int [0,NUM_TRAINS-1] id_train</parameter>
-		<declaration>clock mov_time;
-clock waiting_time;
+		<declaration>clock waiting_time;
 
 const int speed = SPEED[id_train];
 const int line = T_LINES[id_train];
@@ -112,8 +111,15 @@ int charge = INITIAL_CHARGE[id_train];
 int max_charge = MAX_CHARGE[id_train];
 int current_station = INITIAL_STATION[id_train];
 int next_station = NEXT_STATION[id_train];
+int number_of_laps_done = 0;
+int mov_time = 0;
+
 
 //Functions
+void increase_number_of_laps_done(){
+    number_of_laps_done += 1;
+}
+
 int get_maximal_delay(){
     return MAX_DELAYS[current_station][next_station];
 }
@@ -287,7 +293,7 @@ void update_train_info(){
 		<transition>
 			<source ref="id6"/>
 			<target ref="id6"/>
-			<label kind="guard" x="-2388" y="-697">not all_finish() &amp;&amp; mov_time &gt;=2</label>
+			<label kind="guard" x="-2371" y="-697">not all_finish() &amp;&amp; mov_time &gt;=2</label>
 			<label kind="assignment" x="-2252" y="-680">mov_time = 0</label>
 			<nail x="-2159" y="-697"/>
 			<nail x="-2159" y="-637"/>
@@ -313,20 +319,21 @@ void update_train_info(){
 		<transition>
 			<source ref="id0"/>
 			<target ref="id6"/>
-			<label kind="guard" x="-1980" y="-722">initial_station() &amp;&amp; day_time &gt;= END_OF_THE_DAY</label>
+			<label kind="guard" x="-1955" y="-739">initial_station() &amp;&amp; 
+number_of_laps_done &gt;= END_OF_THE_DAY</label>
 			<label kind="assignment" x="-1955" y="-697">FINISH[id_train] = true, decrease_inside_count()</label>
 		</transition>
 		<transition>
 			<source ref="id3"/>
 			<target ref="id0"/>
 			<label kind="synchronisation" x="-1326" y="-697">enter_station_reply_ok[next_station]?</label>
-			<label kind="assignment" x="-1428" y="-680">decrease_charge(1), waiting_time = 0, mov_time = 0, increase_inside_count(), 
-update_train_info(), decrease_waiting_trains()</label>
+			<label kind="assignment" x="-1462" y="-680">decrease_charge(1), waiting_time = 0, mov_time = 0, increase_inside_count(), 
+update_train_info(), decrease_waiting_trains(), increase_number_of_laps_done()</label>
 		</transition>
 		<transition>
 			<source ref="id5"/>
 			<target ref="id0"/>
-			<label kind="assignment" x="-1887" y="-867">waiting_time=0, mov_time=0, day_time = 0</label>
+			<label kind="assignment" x="-1802" y="-867">waiting_time=0, mov_time=0</label>
 		</transition>
 		<transition>
 			<source ref="id4"/>
@@ -372,7 +379,7 @@ mov_time &lt; max_time_before_leaving()</label>
 		<transition>
 			<source ref="id0"/>
 			<target ref="id1"/>
-			<label kind="guard" x="-1963" y="-654">not initial_station() || day_time &lt; END_OF_THE_DAY</label>
+			<label kind="guard" x="-2031" y="-654">not initial_station() || number_of_laps_done &lt; END_OF_THE_DAY</label>
 			<label kind="assignment" x="-1938" y="-637">increase_charge(get_minimal_recharge_time()), 
 waiting_time = 0</label>
 		</transition>
