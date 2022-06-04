@@ -14,8 +14,8 @@ const int INITIAL_CHARGE[NUM_TRAINS] ={28, 28}; //must be less than MAX_CHARGE
 const int INITIAL_STATION[NUM_TRAINS] = {0, 2};
 const int T_LINES[NUM_TRAINS] = {0, 0};
 const int NEXT_STATION[NUM_TRAINS] = {1, 1}; //must be inside the line
-bool FINISH[NUM_TRAINS] = {false, false};
-int TRAIN_LAPS[NUM_TRAINS] = {2,2};
+const int TRAIN_LAPS[NUM_TRAINS] = {2,2};
+
 
 
 //Station settings
@@ -23,7 +23,7 @@ const int NUM_STATIONS = 3;
 const int SPARE_TIME = 6;
 const int MAX_TRACKS[NUM_STATIONS] = {2,1,2};
 const int PASSENGERS_TIME = 3;
-const int REQUEST_DELAY = 2;
+const int REQUEST_DELAY = 1;
 int TRAINS_INSIDE[NUM_STATIONS] = {1,0,1};
 int WAITING_TRAINS [NUM_STATIONS] = {0,0,0};
 
@@ -34,9 +34,9 @@ const int LINES[NUM_LINES][NUM_MAX_STATIONS_LINE] = {{0,1,2},{0,1,-1}}; //0,1,2
 const int DISTANCES [NUM_STATIONS][NUM_STATIONS] ={{0,70,-1},
                                                    {70,0,50},
                                                    {-1,50,0}};
-const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,60,-1},
-                                                    {60,0,60},
-                                                    {-1,60,0}};
+const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,90,-1},
+                                                    {90,0,90},
+                                                    {-1,90,0}};
 
 /*
 // GLOBAL VARIABLE
@@ -196,14 +196,6 @@ bool initial_station(){
     return false;
 }
 
-bool all_finish(){
-    for(i : int[0, NUM_TRAINS-1]){
-        if(FINISH[i] == false){
-            return false;
-        }
-    }
-    return true;
-}
 
 void increase_waiting_trains(){
     WAITING_TRAINS[next_station] += 1;
@@ -283,8 +275,8 @@ void update_train_info(){
 			<committed/>
 		</location>
 		<location id="id4" x="-756" y="-901">
-			<name x="-858" y="-935">Waiting_Request_Delay</name>
-			<label kind="invariant" x="-1003" y="-892">train_clock &lt;= REQUEST_DELAY-1</label>
+			<name x="-952" y="-926">Waiting_Request_Delay</name>
+			<label kind="invariant" x="-1003" y="-909">train_clock &lt;= REQUEST_DELAY</label>
 		</location>
 		<location id="id5" x="-1615" y="-885">
 			<name x="-1641" y="-919">Initializer</name>
@@ -311,20 +303,20 @@ void update_train_info(){
 		<transition>
 			<source ref="id4"/>
 			<target ref="id7"/>
-			<label kind="guard" x="-850" y="-969">ride_time &gt; MAX_DELAYS[current_station][next_station] || charge &lt;= 0</label>
+			<label kind="guard" x="-816" y="-969">ride_time &gt; MAX_DELAYS[current_station][next_station] || charge &lt;= 0</label>
 			<nail x="-756" y="-943"/>
 		</transition>
 		<transition>
 			<source ref="id0"/>
 			<target ref="id6"/>
-			<label kind="guard" x="-2031" y="-722">initial_station() &amp;&amp; number_of_laps &gt;= TRAIN_LAPS[id_train]</label>
-			<label kind="assignment" x="-1955" y="-697">FINISH[id_train] = true, decrease_inside_count()</label>
+			<label kind="guard" x="-2040" y="-722">initial_station() &amp;&amp; number_of_laps &gt;= TRAIN_LAPS[id_train]</label>
+			<label kind="assignment" x="-1938" y="-697">decrease_inside_count()</label>
 		</transition>
 		<transition>
 			<source ref="id3"/>
 			<target ref="id0"/>
 			<label kind="synchronisation" x="-1326" y="-697">enter_station_reply_ok[next_station]?</label>
-			<label kind="assignment" x="-1428" y="-680">decrease_charge(1), reset_ride_time(), train_clock = 0, increase_inside_count(), 
+			<label kind="assignment" x="-1402" y="-680">reset_ride_time(), train_clock = 0, increase_inside_count(), 
 decrease_waiting_trains(), update_train_info(), increase_number_of_laps()</label>
 		</transition>
 		<transition>
@@ -335,17 +327,16 @@ decrease_waiting_trains(), update_train_info(), increase_number_of_laps()</label
 		<transition>
 			<source ref="id4"/>
 			<target ref="id3"/>
-			<label kind="guard" x="-1045" y="-833">train_clock &gt;= REQUEST_DELAY-1</label>
-			<label kind="synchronisation" x="-1045" y="-816">enter_station_request[next_station]!</label>
-			<label kind="assignment" x="-1045" y="-799">decrease_charge(REQUEST_DELAY-1),
-increase_ride_time(REQUEST_DELAY-1),
-train_clock = 0</label>
+			<label kind="guard" x="-1020" y="-833">train_clock &gt;= REQUEST_DELAY</label>
+			<label kind="synchronisation" x="-1020" y="-816">enter_station_request[next_station]!</label>
+			<label kind="assignment" x="-1020" y="-799">decrease_charge(REQUEST_DELAY),
+increase_ride_time(REQUEST_DELAY)</label>
 		</transition>
 		<transition>
 			<source ref="id3"/>
 			<target ref="id4"/>
 			<label kind="synchronisation" x="-671" y="-841">enter_station_reply_ko[next_station]?</label>
-			<label kind="assignment" x="-671" y="-824">decrease_charge(1), train_clock = 0</label>
+			<label kind="assignment" x="-671" y="-824">train_clock = 0</label>
 			<nail x="-680" y="-739"/>
 			<nail x="-680" y="-901"/>
 		</transition>
@@ -356,7 +347,7 @@ train_clock = 0</label>
 			<label kind="synchronisation" x="-748" y="-612">enter_station_request[next_station]!</label>
 			<label kind="assignment" x="-748" y="-595">decrease_charge(compute_minimal_travel_time()), 
 increase_ride_time(compute_minimal_travel_time()), 
-train_clock = 0, increase_waiting_trains()</label>
+increase_waiting_trains()</label>
 		</transition>
 		<transition>
 			<source ref="id1"/>
@@ -378,10 +369,10 @@ ride_time &lt; max_time_before_leaving()</label>
 		<transition>
 			<source ref="id0"/>
 			<target ref="id1"/>
-			<label kind="guard" x="-2023" y="-654">train_clock &gt;= get_minimal_recharge_time() &amp;&amp; 
+			<label kind="guard" x="-2023" y="-654">train_clock &gt;= (get_minimal_recharge_time()-1) &amp;&amp; 
 (not initial_station() || number_of_laps &lt; TRAIN_LAPS[id_train])</label>
-			<label kind="assignment" x="-2023" y="-620">increase_charge(get_minimal_recharge_time()), 
-increase_ride_time(get_minimal_recharge_time()), train_clock = 0</label>
+			<label kind="assignment" x="-2023" y="-620">increase_charge(get_minimal_recharge_time()-1), 
+increase_ride_time(get_minimal_recharge_time()-1), train_clock = 0</label>
 		</transition>
 	</template>
 	<template>
@@ -457,7 +448,7 @@ system Train, Station;
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A[] ( Train(0).Charging imply !Train(0).ERROR )</formula>
+			<formula>A[] ( Train(0).Waiting imply !Train(0).ERROR )</formula>
 			<comment></comment>
 		</query>
 		<query>
