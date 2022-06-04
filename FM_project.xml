@@ -2,7 +2,6 @@
 <!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
 <nta>
 	<declaration>// GLOBAL VARIABLE
-const int END_OF_THE_DAY = 80;
 
 //SIMPLE SETTINGS
 //Train settings
@@ -90,13 +89,7 @@ urgent chan enter_station_reply_ok[NUM_STATIONS];
 urgent chan enter_station_reply_ko[NUM_STATIONS];
 chan exit_station[NUM_STATIONS];
 
-//Global functions
-bool authorization_granted(int station){
-    if(TRAINS_INSIDE[station] &lt; MAX_TRACKS[station]){
-        return true;
-    }
-    return false;
-}
+
 
 </declaration>
 	<template>
@@ -116,6 +109,14 @@ int mov_time = 0;
 
 
 //Functions
+void increase_mov_time(int t_inc){
+    mov_time += t_inc;
+}
+
+void reset_mov_time(){
+    mov_time = 0;
+}
+
 void increase_number_of_laps_done(){
     number_of_laps_done += 1;
 }
@@ -277,7 +278,7 @@ void update_train_info(){
 		</location>
 		<location id="id4" x="-756" y="-901">
 			<name x="-833" y="-935">Waiting_Request_Delay</name>
-			<label kind="invariant" x="-1003" y="-892">waiting_time &lt;= REQUEST_DELAY-1</label>
+			<label kind="invariant" x="-1011" y="-909">waiting_time &lt;= REQUEST_DELAY-1</label>
 		</location>
 		<location id="id5" x="-1615" y="-885">
 			<name x="-1641" y="-919">Initializer</name>
@@ -286,8 +287,8 @@ void update_train_info(){
 			<name x="-2116" y="-748">End_Of_The_Day</name>
 			<label kind="invariant" x="-2108" y="-731">mov_time &lt;= 2</label>
 		</location>
-		<location id="id7" x="-323" y="-943">
-			<name x="-333" y="-977">ERROR</name>
+		<location id="id7" x="-323" y="-986">
+			<name x="-333" y="-1020">ERROR</name>
 		</location>
 		<init ref="id5"/>
 		<transition>
@@ -301,53 +302,53 @@ void update_train_info(){
 		<transition>
 			<source ref="id1"/>
 			<target ref="id2"/>
-			<label kind="guard" x="-1232" y="-544">forced_to_exit()</label>
-			<label kind="assignment" x="-1394" y="-527">waiting_time = 0, decrease_inside_count(), increase_charge(1)</label>
+			<label kind="guard" x="-1283" y="-544">forced_to_exit()</label>
+			<label kind="assignment" x="-1445" y="-527">increase_mov_time(1), waiting_time = 0, decrease_inside_count(), increase_charge(1)</label>
 		</transition>
 		<transition>
 			<source ref="id3"/>
 			<target ref="id7"/>
-			<label kind="guard" x="-714" y="-722">mov_time &gt; MAX_DELAYS[current_station][next_station] || charge &lt;= 0</label>
+			<label kind="guard" x="-535" y="-722">mov_time &gt; MAX_DELAYS[current_station][next_station] || charge &lt;= 0</label>
 			<nail x="-323" y="-697"/>
 		</transition>
 		<transition>
 			<source ref="id4"/>
 			<target ref="id7"/>
-			<label kind="guard" x="-850" y="-969">mov_time &gt; MAX_DELAYS[current_station][next_station] || charge &lt;= 0</label>
-			<nail x="-756" y="-943"/>
+			<label kind="guard" x="-901" y="-1011">mov_time &gt; MAX_DELAYS[current_station][next_station] || charge &lt;= 0</label>
+			<nail x="-756" y="-986"/>
 		</transition>
 		<transition>
 			<source ref="id0"/>
 			<target ref="id6"/>
-			<label kind="guard" x="-1955" y="-739">initial_station() &amp;&amp; 
-number_of_laps_done &gt;= END_OF_THE_DAY</label>
+			<label kind="guard" x="-1980" y="-739">initial_station() &amp;&amp; 
+number_of_laps_done &gt;= NUMBER_OF_LAPS[id_train]</label>
 			<label kind="assignment" x="-1955" y="-697">FINISH[id_train] = true, decrease_inside_count()</label>
 		</transition>
 		<transition>
 			<source ref="id3"/>
 			<target ref="id0"/>
 			<label kind="synchronisation" x="-1326" y="-697">enter_station_reply_ok[next_station]?</label>
-			<label kind="assignment" x="-1462" y="-680">decrease_charge(1), waiting_time = 0, mov_time = 0, increase_inside_count(), 
-update_train_info(), decrease_waiting_trains(), increase_number_of_laps_done()</label>
+			<label kind="assignment" x="-1479" y="-680">decrease_charge(1), waiting_time = 0, increase_inside_count(), decrease_waiting_trains(), 
+increase_number_of_laps_done(), reset_mov_time(), update_train_info()</label>
 		</transition>
 		<transition>
 			<source ref="id5"/>
 			<target ref="id0"/>
-			<label kind="assignment" x="-1802" y="-867">waiting_time=0, mov_time=0</label>
+			<label kind="assignment" x="-1717" y="-867">waiting_time=0</label>
 		</transition>
 		<transition>
 			<source ref="id4"/>
 			<target ref="id3"/>
-			<label kind="guard" x="-1020" y="-833">waiting_time &gt;= REQUEST_DELAY-1</label>
-			<label kind="synchronisation" x="-1020" y="-816">enter_station_request[next_station]!</label>
-			<label kind="assignment" x="-1020" y="-799">decrease_charge(REQUEST_DELAY-1),
-waiting_time = 0</label>
+			<label kind="guard" x="-1045" y="-833">waiting_time &gt;= REQUEST_DELAY-1</label>
+			<label kind="synchronisation" x="-1045" y="-816">enter_station_request[next_station]!</label>
+			<label kind="assignment" x="-1105" y="-799">increase_mov_time(compute_minimal_travel_time()), 
+decrease_charge(REQUEST_DELAY), waiting_time = 0</label>
 		</transition>
 		<transition>
 			<source ref="id3"/>
 			<target ref="id4"/>
 			<label kind="synchronisation" x="-671" y="-841">enter_station_reply_ko[next_station]?</label>
-			<label kind="assignment" x="-671" y="-824">decrease_charge(1), waiting_time = 0</label>
+			<label kind="assignment" x="-671" y="-824">waiting_time = 0</label>
 			<nail x="-680" y="-739"/>
 			<nail x="-680" y="-901"/>
 		</transition>
@@ -356,14 +357,14 @@ waiting_time = 0</label>
 			<target ref="id3"/>
 			<label kind="guard" x="-748" y="-612">waiting_time &gt;= compute_minimal_travel_time()</label>
 			<label kind="synchronisation" x="-748" y="-595">enter_station_request[next_station]!</label>
-			<label kind="assignment" x="-748" y="-578">decrease_charge(compute_minimal_travel_time()), 
+			<label kind="assignment" x="-748" y="-578">increase_mov_time(compute_minimal_travel_time()), decrease_charge(compute_minimal_travel_time()), 
 waiting_time = 0, increase_waiting_trains()</label>
 		</transition>
 		<transition>
 			<source ref="id1"/>
 			<target ref="id2"/>
 			<label kind="guard" x="-1530" y="-340">!forced_to_exit() &amp;&amp; (charge == max_charge || mov_time &gt;=max_time_before_leaving())</label>
-			<label kind="assignment" x="-1360" y="-323">decrease_inside_count(), waiting_time=0</label>
+			<label kind="assignment" x="-1445" y="-323">increase_mov_time(1), decrease_inside_count(), waiting_time=0</label>
 			<nail x="-1615" y="-341"/>
 			<nail x="-756" y="-340"/>
 		</transition>
@@ -372,22 +373,28 @@ waiting_time = 0, increase_waiting_trains()</label>
 			<target ref="id1"/>
 			<label kind="guard" x="-2133" y="-561">waiting_time &gt;=1 &amp;&amp; !forced_to_exit() &amp;&amp;
 mov_time &lt; max_time_before_leaving()</label>
-			<label kind="assignment" x="-2116" y="-527">increase_charge(1), waiting_time = 0</label>
+			<label kind="assignment" x="-2116" y="-527">increase_mov_time(1),increase_charge(1), waiting_time = 0</label>
 			<nail x="-1870" y="-502"/>
 			<nail x="-1870" y="-570"/>
 		</transition>
 		<transition>
 			<source ref="id0"/>
 			<target ref="id1"/>
-			<label kind="guard" x="-2031" y="-654">not initial_station() || number_of_laps_done &lt; END_OF_THE_DAY</label>
-			<label kind="assignment" x="-1938" y="-637">increase_charge(get_minimal_recharge_time()), 
-waiting_time = 0</label>
+			<label kind="guard" x="-2091" y="-654">not initial_station() || number_of_laps_done &lt; NUMBER_OF_LAPS[id_train]</label>
+			<label kind="assignment" x="-2091" y="-637">increase_charge(get_minimal_recharge_time()), 
+increase_mov_time(get_minimal_recharge_time()),waiting_time = 0</label>
 		</transition>
 	</template>
 	<template>
 		<name>Station</name>
 		<parameter>const int[0,NUM_STATIONS-1] id_station</parameter>
-		<declaration>
+		<declaration>//Station functions
+bool authorization_granted(){
+    if(TRAINS_INSIDE[id_station] &lt; MAX_TRACKS[id_station]){
+        return true;
+    }
+    return false;
+}
 
 
 
@@ -403,13 +410,13 @@ waiting_time = 0</label>
 		<transition>
 			<source ref="id9"/>
 			<target ref="id8"/>
-			<label kind="guard" x="-2507" y="-3043">not authorization_granted(id_station)</label>
+			<label kind="guard" x="-2507" y="-3043">not authorization_granted()</label>
 			<label kind="synchronisation" x="-2490" y="-3026">enter_station_reply_ko[id_station]!</label>
 		</transition>
 		<transition>
 			<source ref="id9"/>
 			<target ref="id8"/>
-			<label kind="guard" x="-2490" y="-3170">authorization_granted(id_station)</label>
+			<label kind="guard" x="-2490" y="-3170">authorization_granted()</label>
 			<label kind="synchronisation" x="-2490" y="-3153">enter_station_reply_ok[id_station]!</label>
 			<nail x="-2210" y="-2958"/>
 			<nail x="-2210" y="-3111"/>
@@ -529,11 +536,11 @@ system Train, Station;
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A[] ( !Train(1).Initializer imply (Train(1).mov_time &lt;= MAX_DELAYS[Train(1).current_station][Train(1).next_station]) )</formula>
+			<formula>A[] ( Train(1).mov_time &lt;= MAX_DELAYS[Train(1).current_station][Train(1).next_station] ) </formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A[] ( !Train(0).Initializer imply (Train(0).mov_time &lt;= MAX_DELAYS[Train(0).current_station][Train(0).next_station]) )</formula>
+			<formula>A[] ( Train(0).mov_time &lt;= MAX_DELAYS[Train(0).current_station][Train(0).next_station] )</formula>
 			<comment></comment>
 		</query>
 		<query>
