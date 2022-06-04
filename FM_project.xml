@@ -3,8 +3,6 @@
 <nta>
 	<declaration>
 // GLOBAL VARIABLE
-clock day_time;
-const int END_OF_THE_DAY = 80;
 
 //SIMPLE SETTINGS
 //Train settings
@@ -17,6 +15,7 @@ const int INITIAL_STATION[NUM_TRAINS] = {0, 2};
 const int T_LINES[NUM_TRAINS] = {0, 0};
 const int NEXT_STATION[NUM_TRAINS] = {1, 1}; //must be inside the line
 bool FINISH[NUM_TRAINS] = {false, false};
+int TRAIN_LAPS[NUM_TRAINS] = {2,2};
 
 
 //Station settings
@@ -95,23 +94,13 @@ urgent chan enter_station_reply_ok[NUM_STATIONS];
 urgent chan enter_station_reply_ko[NUM_STATIONS];
 chan exit_station[NUM_STATIONS];
 
-//Global functions
-bool authorization_granted(int station){
-    if(TRAINS_INSIDE[station] &lt; MAX_TRACKS[station]){
-        return true;
-    }
-    return false;
-}
+
 
 </declaration>
 	<template>
 		<name x="5" y="5">Train</name>
 		<parameter>const int [0,NUM_TRAINS-1] id_train</parameter>
-		<declaration>//clock mov_time;
-//clock waiting_time;
-
-clock train_clock;
-
+		<declaration>clock train_clock;
 int ride_time = 0;
 
 const int speed = SPEED[id_train];
@@ -121,8 +110,15 @@ const int max_charge = MAX_CHARGE[id_train];
 int charge = INITIAL_CHARGE[id_train];
 int current_station = INITIAL_STATION[id_train];
 int next_station = NEXT_STATION[id_train];
+int number_of_laps = 0;
 
 //Functions
+void increase_number_of_laps(){
+    if(INITIAL_STATION[id_train] == current_station){
+        number_of_laps += 1;
+    }
+}
+
 void increase_ride_time(int t_inc){
     ride_time += t_inc;
 }
@@ -287,28 +283,19 @@ void update_train_info(){
 			<committed/>
 		</location>
 		<location id="id4" x="-756" y="-901">
-			<name x="-833" y="-935">Waiting_Request_Delay</name>
+			<name x="-858" y="-935">Waiting_Request_Delay</name>
 			<label kind="invariant" x="-1003" y="-892">train_clock &lt;= REQUEST_DELAY-1</label>
 		</location>
 		<location id="id5" x="-1615" y="-885">
 			<name x="-1641" y="-919">Initializer</name>
 		</location>
-		<location id="id6" x="-2023" y="-697">
-			<name x="-2116" y="-748">End_Of_The_Day</name>
-			<label kind="invariant" x="-2108" y="-731">train_clock &lt;= 2</label>
+		<location id="id6" x="-2133" y="-697">
+			<name x="-2226" y="-748">End_Of_The_Day</name>
 		</location>
 		<location id="id7" x="-323" y="-943">
 			<name x="-333" y="-977">ERROR</name>
 		</location>
 		<init ref="id5"/>
-		<transition>
-			<source ref="id6"/>
-			<target ref="id6"/>
-			<label kind="guard" x="-2388" y="-697">not all_finish() &amp;&amp; train_clock &gt;=2</label>
-			<label kind="assignment" x="-2252" y="-680">train_clock = 0</label>
-			<nail x="-2159" y="-697"/>
-			<nail x="-2159" y="-637"/>
-		</transition>
 		<transition>
 			<source ref="id1"/>
 			<target ref="id2"/>
@@ -330,7 +317,7 @@ void update_train_info(){
 		<transition>
 			<source ref="id0"/>
 			<target ref="id6"/>
-			<label kind="guard" x="-1980" y="-722">initial_station() &amp;&amp; day_time &gt;= END_OF_THE_DAY</label>
+			<label kind="guard" x="-2031" y="-722">initial_station() &amp;&amp; number_of_laps &gt;= TRAIN_LAPS[id_train]</label>
 			<label kind="assignment" x="-1955" y="-697">FINISH[id_train] = true, decrease_inside_count()</label>
 		</transition>
 		<transition>
@@ -338,12 +325,12 @@ void update_train_info(){
 			<target ref="id0"/>
 			<label kind="synchronisation" x="-1326" y="-697">enter_station_reply_ok[next_station]?</label>
 			<label kind="assignment" x="-1428" y="-680">decrease_charge(1), reset_ride_time(), train_clock = 0, increase_inside_count(), 
-decrease_waiting_trains(), update_train_info()</label>
+decrease_waiting_trains(), update_train_info(), increase_number_of_laps()</label>
 		</transition>
 		<transition>
 			<source ref="id5"/>
 			<target ref="id0"/>
-			<label kind="assignment" x="-1819" y="-833">train_clock = 0, day_time = 0</label>
+			<label kind="assignment" x="-1717" y="-850">train_clock = 0</label>
 		</transition>
 		<transition>
 			<source ref="id4"/>
@@ -391,16 +378,22 @@ ride_time &lt; max_time_before_leaving()</label>
 		<transition>
 			<source ref="id0"/>
 			<target ref="id1"/>
-			<label kind="guard" x="-1963" y="-654">train_clock &gt;= get_minimal_recharge_time() &amp;&amp; 
-(not initial_station() || day_time &lt; END_OF_THE_DAY)</label>
-			<label kind="assignment" x="-1963" y="-620">increase_charge(get_minimal_recharge_time()), 
+			<label kind="guard" x="-2023" y="-654">train_clock &gt;= get_minimal_recharge_time() &amp;&amp; 
+(not initial_station() || number_of_laps &lt; TRAIN_LAPS[id_train])</label>
+			<label kind="assignment" x="-2023" y="-620">increase_charge(get_minimal_recharge_time()), 
 increase_ride_time(get_minimal_recharge_time()), train_clock = 0</label>
 		</transition>
 	</template>
 	<template>
 		<name>Station</name>
 		<parameter>const int[0,NUM_STATIONS-1] id_station</parameter>
-		<declaration>
+		<declaration>//Station functions
+bool authorization_granted(){
+    if(TRAINS_INSIDE[id_station] &lt; MAX_TRACKS[id_station]){
+        return true;
+    }
+    return false;
+}
 
 
 
@@ -416,13 +409,13 @@ increase_ride_time(get_minimal_recharge_time()), train_clock = 0</label>
 		<transition>
 			<source ref="id9"/>
 			<target ref="id8"/>
-			<label kind="guard" x="-2507" y="-3043">not authorization_granted(id_station)</label>
+			<label kind="guard" x="-2507" y="-3043">not authorization_granted()</label>
 			<label kind="synchronisation" x="-2490" y="-3026">enter_station_reply_ko[id_station]!</label>
 		</transition>
 		<transition>
 			<source ref="id9"/>
 			<target ref="id8"/>
-			<label kind="guard" x="-2490" y="-3170">authorization_granted(id_station)</label>
+			<label kind="guard" x="-2465" y="-3170">authorization_granted()</label>
 			<label kind="synchronisation" x="-2490" y="-3153">enter_station_reply_ok[id_station]!</label>
 			<nail x="-2210" y="-2958"/>
 			<nail x="-2210" y="-3111"/>
@@ -435,41 +428,7 @@ increase_ride_time(get_minimal_recharge_time()), train_clock = 0</label>
 		</transition>
 	</template>
 	<system>
-//SIMPLE SETTINGS
-//id_train, charge, max_charge, speed, current_station, line, next_station
-/*train_0 = Train (0, INITIAL_CHARGE[0], MAX_CHARGE[0], SPEED[0], INITIAL_STATION[0], T_LINES[0], NEXT_STATION[0]);
-train_1 = Train (1, INITIAL_CHARGE[1], MAX_CHARGE[1], SPEED[1], INITIAL_STATION[1], T_LINES[1], NEXT_STATION[1]);
-train_2 = Train (2, INITIAL_CHARGE[2], MAX_CHARGE[2], SPEED[2], INITIAL_STATION[2], T_LINES[2], NEXT_STATION[2]);
-
-//id_station, max_tracks
-station_0 = Station(0);
-station_1 = Station(1);
-station_2 = Station(2);
-
-// List one or more processes to be composed into a system.
-system train_0, train_1, train_2, station_0, station_1, station_2;
-*/
-
-/*
-//COMPLETE SETTINGS
-//id_train, charge, max_charge, speed, current_station, line, next_station
-train_0 = Train (0, INITIAL_CHARGE[0], MAX_CHARGE[0], SPEED[0], INITIAL_STATION[0], T_LINES[0], NEXT_STATION[0]);
-train_1 = Train (1, INITIAL_CHARGE[1], MAX_CHARGE[1], SPEED[1], INITIAL_STATION[1], T_LINES[1], NEXT_STATION[1]);
-train_2 = Train (2, INITIAL_CHARGE[2], MAX_CHARGE[2], SPEED[2], INITIAL_STATION[2], T_LINES[2], NEXT_STATION[2]);
-train_3 = Train (3, INITIAL_CHARGE[3], MAX_CHARGE[3], SPEED[3], INITIAL_STATION[3], T_LINES[3], NEXT_STATION[3]);
-train_4 = Train (4, INITIAL_CHARGE[4], MAX_CHARGE[4], SPEED[4], INITIAL_STATION[4], T_LINES[4], NEXT_STATION[4]);
-train_5 = Train (5, INITIAL_CHARGE[5], MAX_CHARGE[5], SPEED[5], INITIAL_STATION[5], T_LINES[5], NEXT_STATION[5]);
-train_6 = Train (6, INITIAL_CHARGE[6], MAX_CHARGE[6], SPEED[6], INITIAL_STATION[6], T_LINES[6], NEXT_STATION[6]);*/
-
-/*
-//id_station, max_tracks
-station_0 = Station(0);
-station_1 = Station(1);
-station_2 = Station(2);
-station_3 = Station(3);
-station_4 = Station(4);*/
-
-// List one or more processes to be composed into a system.
+//Processes
 system Train, Station;
 </system>
 	<queries>
@@ -522,31 +481,31 @@ system Train, Station;
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A[] ( Train(6).mov_time &lt;= MAX_DELAYS[Train(6).current_station][Train(6).next_station] )</formula>
+			<formula>A[] ( Train(6).ride_time &lt;= MAX_DELAYS[Train(6).current_station][Train(6).next_station] )</formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A[] ( Train(5).mov_time &lt;= MAX_DELAYS[Train(5).current_station][Train(5).next_station] )</formula>
+			<formula>A[] ( Train(5).ride_time &lt;= MAX_DELAYS[Train(5).current_station][Train(5).next_station] )</formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A[] ( Train(4).mov_time &lt;= MAX_DELAYS[Train(4).current_station][Train(4).next_station] )</formula>
+			<formula>A[] ( Train(4).ride_time &lt;= MAX_DELAYS[Train(4).current_station][Train(4).next_station] )</formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A[] ( Train(3).mov_time &lt;= MAX_DELAYS[Train(3).current_station][Train(3).next_station] )</formula>
+			<formula>A[] ( Train(3).ride_time &lt;= MAX_DELAYS[Train(3).current_station][Train(3).next_station] )</formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A[] ( Train(2).mov_time &lt;= MAX_DELAYS[Train(2).current_station][Train(2).next_station] )</formula>
+			<formula>A[] ( Train(2).ride_time &lt;= MAX_DELAYS[Train(2).current_station][Train(2).next_station] )</formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A[] ( !Train(1).Initializer imply (Train(1).ride_time &lt;= MAX_DELAYS[Train(1).current_station][Train(1).next_station]) )</formula>
+			<formula>A[] ( Train(1).ride_time &lt;= MAX_DELAYS[Train(1).current_station][Train(1).next_station] )</formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A[] (Train(0).ride_time &lt;= MAX_DELAYS[Train(0).current_station][Train(0).next_station])</formula>
+			<formula>A[] ( Train(0).ride_time &lt;= MAX_DELAYS[Train(0).current_station][Train(0).next_station] )</formula>
 			<comment></comment>
 		</query>
 		<query>
