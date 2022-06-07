@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
 <nta>
-	<declaration>// GLOBAL VARIABLES
+	<declaration>// GLOBAL VARIABLES: Possible configurations are SIMPLE SETTINGS OK, SIMPLE SETTINGS KO and COMPLEX SETTINGS
+
 /*
 //[***SIMPLE SETTINGS OK***]
 //Train settings
@@ -14,7 +15,6 @@ const int INITIAL_STATION[NUM_TRAINS] = {0, 2, 0};
 const int T_LINES[NUM_TRAINS] = {0, 0, 0}; //line that the train follows
 const int NEXT_STATION[NUM_TRAINS] = {1, 1, 1}; //must be inside the line
 const int TRAIN_LAPS[NUM_TRAINS] = {2, 2, 2};
-
 
 //Station settings
 const int NUM_STATIONS = 3;
@@ -38,6 +38,7 @@ const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,50,-1},
 //[*** END SIMPLE SETTINGS OK***]
 */
 
+
 /*
 //[***SIMPLE SETTINGS KO***]
 //Train settings
@@ -50,7 +51,6 @@ const int INITIAL_STATION[NUM_TRAINS] = {0, 2, 0};
 const int T_LINES[NUM_TRAINS] = {0, 0, 0}; //line that the train follows
 const int NEXT_STATION[NUM_TRAINS] = {1, 1, 1}; //must be inside the line
 const int TRAIN_LAPS[NUM_TRAINS] = {2, 2, 2};
-
 
 //Station settings
 const int NUM_STATIONS = 3;
@@ -74,31 +74,30 @@ const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,38,-1},
 //[*** END SIMPLE SETTINGS KO***]
 */
 
-/*
+
+
 //[***COMPLEX SETTINGS***]
 //COMPLETE SETTINGS
 //Train settings
-const int NUM_TRAINS = 7;
+const int NUM_TRAINS = 5;
 const int RECHARGING_MULTIPLIER = 4;
-const int SPEED[NUM_TRAINS] = {1660, 1162, 1494, 1992, 1328, 1660, 996}; //unit=m/min  100km/h 70km/h 90km/h 120km/h 80km/h 100km/h 60 km/h
-const int MAX_CHARGE[NUM_TRAINS] = {32, 34, 38, 30, 33, 34, 45}; //unit=min charge
-const int INITIAL_CHARGE[NUM_TRAINS] ={28,28,32,25,24,18,30}; //must be less than MAX_CHARGE
-const int INITIAL_STATION[NUM_TRAINS] = {0,3,0,4,4,3,0};
-const int T_LINES[NUM_TRAINS] = {1,2,0,2,1,0,1}; //line that the train follows
-const int NEXT_STATION[NUM_TRAINS] = {1,2,1,2,2,2,1}; //must be inside the line
-const int TRAIN_LAPS[NUM_TRAINS] = {2, 1, 1, 2, 1, 2, 1};
-
+const int SPEED[NUM_TRAINS] = {1660, 1162, 1494, 1992, 1328}; //unit=m/min  100km/h 70km/h 90km/h 120km/h 80km/h 100km/h 60 km/h
+const int MAX_CHARGE[NUM_TRAINS] = {32, 38, 34, 30, 36}; //unit=min charge
+const int INITIAL_CHARGE[NUM_TRAINS] ={26,32,28,26,30}; //must be less than MAX_CHARGE
+const int INITIAL_STATION[NUM_TRAINS] = {0,3,0,4,4};
+const int T_LINES[NUM_TRAINS] = {1,2,0,2,1}; //line that the train follows
+const int NEXT_STATION[NUM_TRAINS] = {1,2,1,2,2}; //must be inside the line
+const int TRAIN_LAPS[NUM_TRAINS] = {2, 1, 1, 2, 1};
 
 //Station settings
 const int NUM_STATIONS = 5;
-const int SPARE_TIME = 5;
-const int MAX_TRACKS[NUM_STATIONS] = {4,3,2,2,3};
+const int SPARE_TIME = 4;
+const int MAX_TRACKS[NUM_STATIONS] = {3,2,2,1,2};
 const int PASSENGERS_TIME = 3;
 const int REQUEST_DELAY = 2;
-int TRAINS_INSIDE[NUM_STATIONS] = {3,0,0,2,2};
+int TRAINS_INSIDE[NUM_STATIONS] = {2,0,0,1,2};
 int WAITING_TRAINS [NUM_STATIONS] = {0,0,0,0,0};
                                                 
-
 //Railways settins
 const int NUM_LINES = 3;
 const int NUM_MAX_STATIONS_LINE = 4;
@@ -116,7 +115,7 @@ const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,52,-1,-1,-1},
 
 
 //[*** END COMPLEX SETTINGS***]
-*/
+
 
 
 //Trains and station structure declarations
