@@ -456,14 +456,6 @@ system Train, Station;
 			<comment></comment>
 		</query>
 		<query>
-			<formula>A[] ( Train(6).ride_time &lt;= MAX_DELAYS[Train(6).current_station][Train(6).next_station] )</formula>
-			<comment></comment>
-		</query>
-		<query>
-			<formula>A[] ( Train(5).ride_time &lt;= MAX_DELAYS[Train(5).current_station][Train(5).next_station] )</formula>
-			<comment></comment>
-		</query>
-		<query>
 			<formula>A[] ( Train(4).ride_time &lt;= MAX_DELAYS[Train(4).current_station][Train(4).next_station] )</formula>
 			<comment></comment>
 		</query>
@@ -481,14 +473,6 @@ system Train, Station;
 		</query>
 		<query>
 			<formula>A[] ( Train(0).ride_time &lt;= MAX_DELAYS[Train(0).current_station][Train(0).next_station] )</formula>
-			<comment></comment>
-		</query>
-		<query>
-			<formula>A[] ( Train(6).charge &gt; 0 )</formula>
-			<comment></comment>
-		</query>
-		<query>
-			<formula>A[] ( Train(5).charge &gt; 0 )</formula>
 			<comment></comment>
 		</query>
 		<query>
