@@ -1,42 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
 <nta>
-	<declaration>
-// GLOBAL VARIABLE
+	<declaration>// GLOBAL VARIABLES
 
-//SIMPLE SETTINGS
+//[***SIMPLE SETTINGS***]
 //Train settings
-const int NUM_TRAINS = 2;
-const int RECHARGING_MULTIPLIER = 3;
-const int SPEED[NUM_TRAINS] = {7, 8};
-const int MAX_CHARGE[NUM_TRAINS] = {30, 28}; //time
-const int INITIAL_CHARGE[NUM_TRAINS] ={28, 28}; //must be less than MAX_CHARGE
-const int INITIAL_STATION[NUM_TRAINS] = {0, 2};
-const int T_LINES[NUM_TRAINS] = {0, 0};
-const int NEXT_STATION[NUM_TRAINS] = {1, 1}; //must be inside the line
-const int TRAIN_LAPS[NUM_TRAINS] = {2,2};
-
+const int NUM_TRAINS = 3;
+const int RECHARGING_MULTIPLIER = 4;
+const int SPEED[NUM_TRAINS] = {1660, 1162, 1494};  //unit=m/min  100km/h 70km/h 90km/h
+const int MAX_CHARGE[NUM_TRAINS] = {32, 34, 38}; //unit=m charge
+const int INITIAL_CHARGE[NUM_TRAINS] ={25, 27, 30}; //must be less than MAX_CHARGE
+const int INITIAL_STATION[NUM_TRAINS] = {0, 2, 0};
+const int T_LINES[NUM_TRAINS] = {0, 0, 0}; //line that the train follows
+const int NEXT_STATION[NUM_TRAINS] = {1, 1, 1}; //must be inside the line
+const int TRAIN_LAPS[NUM_TRAINS] = {3, 2, 3};
 
 
 //Station settings
 const int NUM_STATIONS = 3;
-const int SPARE_TIME = 6;
+const int SPARE_TIME = 5; //Time
 const int MAX_TRACKS[NUM_STATIONS] = {2,1,2};
-const int PASSENGERS_TIME = 3;
-const int REQUEST_DELAY = 1;
-int TRAINS_INSIDE[NUM_STATIONS] = {1,0,1};
+const int PASSENGERS_TIME = 4;
+const int REQUEST_DELAY = 2;
+int TRAINS_INSIDE[NUM_STATIONS] = {2,0,1};
 int WAITING_TRAINS [NUM_STATIONS] = {0,0,0};
 
 //Railways settins
 const int NUM_LINES = 2;
 const int NUM_MAX_STATIONS_LINE = 3;
-const int LINES[NUM_LINES][NUM_MAX_STATIONS_LINE] = {{0,1,2},{0,1,-1}}; //0,1,2
-const int DISTANCES [NUM_STATIONS][NUM_STATIONS] ={{0,70,-1},
-                                                   {70,0,50},
-                                                   {-1,50,0}};
-const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,90,-1},
-                                                    {90,0,90},
-                                                    {-1,90,0}};
+const int LINES[NUM_LINES][NUM_MAX_STATIONS_LINE] = {{0,1,2},{0,1,-1}};
+const int DISTANCES [NUM_STATIONS][NUM_STATIONS] ={{0,18000,-1},
+                                                   {18000,0,12000},
+                                                   {-1,12000,0}}; //unit=m
+const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,50,-1}, 
+                                                    {50,0,40},
+                                                    {-1,40,0}}; //unit=m
+//[*** END SIMPLE SETTINGS***]
 
 /*
 // GLOBAL VARIABLE
@@ -83,10 +82,10 @@ const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,100,-1,-1,-1},
 
 */
 
+
+//Trains and station structure declarations
 typedef int[0, NUM_TRAINS - 1] train_t;
 typedef int[0, NUM_STATIONS - 1] station_t;
-
-
 
 //Channels
 chan enter_station_request[NUM_STATIONS];
@@ -107,7 +106,7 @@ const int speed = SPEED[id_train];
 const int line = T_LINES[id_train];
 const int max_charge = MAX_CHARGE[id_train];
 
-int charge = INITIAL_CHARGE[id_train];
+int charge = INITIAL_CHARGE[id_train]; //charge diminishes linearly with time
 int current_station = INITIAL_STATION[id_train];
 int next_station = NEXT_STATION[id_train];
 int number_of_laps = 0;
@@ -352,8 +351,8 @@ increase_waiting_trains()</label>
 		<transition>
 			<source ref="id1"/>
 			<target ref="id2"/>
-			<label kind="guard" x="-1530" y="-340">train_clock&gt;=1 &amp;&amp;!forced_to_exit() &amp;&amp; (charge == max_charge || ride_time &gt;= max_time_before_leaving())</label>
-			<label kind="assignment" x="-1360" y="-323">increase_ride_time(1), decrease_inside_count(), train_clock=0</label>
+			<label kind="guard" x="-1496" y="-340">train_clock&gt;=1 &amp;&amp;!forced_to_exit() &amp;&amp; (charge == max_charge || ride_time &lt; max_time_before_leaving())</label>
+			<label kind="assignment" x="-1496" y="-323">increase_ride_time(1), decrease_inside_count(), train_clock=0</label>
 			<nail x="-1615" y="-341"/>
 			<nail x="-756" y="-340"/>
 		</transition>
