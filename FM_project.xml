@@ -179,12 +179,12 @@ const int speed = SPEED[id_train];
 const int line = T_LINES[id_train];
 const int max_charge = MAX_CHARGE[id_train];
 
-int charge = INITIAL_CHARGE[id_train]; //charge diminishes linearly with time
+int charge = INITIAL_CHARGE[id_train];
 int current_station = INITIAL_STATION[id_train];
 int next_station = NEXT_STATION[id_train];
 int number_of_laps = 0;
 
-//Functions
+//Train Functions
 void increase_number_of_laps(){
     if(INITIAL_STATION[id_train] == current_station){
         number_of_laps += 1;
@@ -289,8 +289,8 @@ void update_train_info(){
     int next_index = 0;
     for (current_index : int[0, NUM_MAX_STATIONS_LINE-1])
     {
-        if(LINES[line][current_index] == current_station){ //current index found
-            current_station = next_station; //new current station found
+        if(LINES[line][current_index] == current_station){
+            current_station = next_station;
             next_index = current_index;
             if(next_index-1 &lt; 0 || LINES[line][next_index-1] == -1){
                 next_index = next_index + 1;
@@ -468,8 +468,7 @@ bool authorization_granted(){
 			<nail x="-2592" y="-2728"/>
 		</transition>
 	</template>
-	<system>
-//Processes
+	<system>//Processes
 system Train, Station;
 </system>
 	<queries>
