@@ -75,13 +75,13 @@ const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,38,-1},
 */
 
 
-
-//[***COMPLEX SETTINGS***]
+/*
+//[***COMPLEX SETTINGS OK***]
 //COMPLETE SETTINGS
 //Train settings
 const int NUM_TRAINS = 5;
 const int RECHARGING_MULTIPLIER = 4;
-const int SPEED[NUM_TRAINS] = {1660, 1162, 1494, 1992, 1328}; //unit=m/min  100km/h 70km/h 90km/h 120km/h 80km/h 100km/h 60 km/h
+const int SPEED[NUM_TRAINS] = {1660, 1162, 1494, 1992, 1328}; //unit=m/min  100km/h 70km/h 90km/h 120km/h 80km/h
 const int MAX_CHARGE[NUM_TRAINS] = {32, 38, 34, 30, 36}; //unit=min charge
 const int INITIAL_CHARGE[NUM_TRAINS] ={26,32,28,26,30}; //must be less than MAX_CHARGE
 const int INITIAL_STATION[NUM_TRAINS] = {0,3,0,4,4};
@@ -115,8 +115,47 @@ const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,52,-1,-1,-1},
 
 
 //[*** END COMPLEX SETTINGS***]
+*/
+
+//[***COMPLEX SETTINGS KO***]
+//COMPLETE SETTINGS
+//Train settings
+const int NUM_TRAINS = 5;
+const int RECHARGING_MULTIPLIER = 4;
+const int SPEED[NUM_TRAINS] = {1660, 996, 1494, 1162, 996}; //unit=m/min  100km/h 60km/h 90km/h 70km/h 60km/h
+const int MAX_CHARGE[NUM_TRAINS] = {32, 38, 34, 30, 34}; //unit=min charge
+const int INITIAL_CHARGE[NUM_TRAINS] ={26,28,28,26,30}; //must be less than MAX_CHARGE
+const int INITIAL_STATION[NUM_TRAINS] = {0,3,0,4,4};
+const int T_LINES[NUM_TRAINS] = {1,2,0,2,1}; //line that the train follows
+const int NEXT_STATION[NUM_TRAINS] = {1,2,1,2,2}; //must be inside the line
+const int TRAIN_LAPS[NUM_TRAINS] = {2, 1, 2, 2, 1};
+
+//Station settings
+const int NUM_STATIONS = 5;
+const int SPARE_TIME = 4;
+const int MAX_TRACKS[NUM_STATIONS] = {3,2,1,1,2};
+const int PASSENGERS_TIME = 3;
+const int REQUEST_DELAY = 2;
+int TRAINS_INSIDE[NUM_STATIONS] = {2,0,0,1,2};
+int WAITING_TRAINS [NUM_STATIONS] = {0,0,0,0,0};
+                                                
+//Railways settins
+const int NUM_LINES = 3;
+const int NUM_MAX_STATIONS_LINE = 4;
+const int LINES [NUM_LINES][NUM_MAX_STATIONS_LINE] = {{0,1,2,3},{0,1,2,4},{3,2,4,-1}};
+const int DISTANCES [NUM_STATIONS][NUM_STATIONS] ={{0,18000,-1,-1,-1},
+                                                     {18000,0,15000,-1,-1},
+                                                     {-1,15000,0,15000,20000},
+                                                     {-1,-1,15000,0,-1},
+                                                     {-1,-1,20000,-1,0}};
+const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,44,-1,-1,-1},
+                                                     {44,0,38,-1,-1},
+                                                     {-1,38,0,38,40},
+                                                     {-1,-1,38,0,-1},
+                                                     {-1,-1,40,-1,0}};
 
 
+//[*** END COMPLEX SETTINGS***]
 
 //Trains and station structure declarations
 typedef int[0, NUM_TRAINS - 1] train_t;
