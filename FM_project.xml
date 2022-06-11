@@ -77,7 +77,6 @@ const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,38,-1},
 
 /*
 //[***COMPLEX SETTINGS OK***]
-//COMPLETE SETTINGS
 //Train settings
 const int NUM_TRAINS = 5;
 const int RECHARGING_MULTIPLIER = 4;
@@ -112,13 +111,11 @@ const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,52,-1,-1,-1},
                                                      {-1,42,0,38,60},
                                                      {-1,-1,38,0,-1},
                                                      {-1,-1,60,-1,0}};
-
-
 //[*** END COMPLEX SETTINGS***]
 */
 
+/*
 //[***COMPLEX SETTINGS KO***]
-//COMPLETE SETTINGS
 //Train settings
 const int NUM_TRAINS = 5;
 const int RECHARGING_MULTIPLIER = 4;
@@ -153,9 +150,8 @@ const int MAX_DELAYS [NUM_STATIONS][NUM_STATIONS] ={{0,44,-1,-1,-1},
                                                      {-1,38,0,38,40},
                                                      {-1,-1,38,0,-1},
                                                      {-1,-1,40,-1,0}};
-
-
 //[*** END COMPLEX SETTINGS***]
+*/
 
 //Trains and station structure declarations
 typedef int[0, NUM_TRAINS - 1] train_t;
